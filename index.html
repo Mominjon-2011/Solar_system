@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>3D Quyosh Tizimi - Realistik Sayyoralar</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none;
+            background: #000;
+        }
+        
+        /* VAQT PANELI */
+        .time-panel {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            padding: 12px 20px;
+            border-radius: 60px;
+            color: white;
+            z-index: 20;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-family: monospace;
+            border: 2px solid rgba(255, 200, 100, 0.5);
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
+            pointer-events: auto;
+            white-space: nowrap;
+        }
+        
+        .time-panel label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffcc88;
+        }
+        
+        .time-panel input {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ffaa66;
+            color: #ffdd99;
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-family: monospace;
+            font-size: 14px;
+            cursor: pointer;
+            width: 180px;
+            font-weight: bold;
+        }
+        
+        .time-panel input:focus {
+            outline: none;
+            border-color: #ffcc44;
+            box-shadow: 0 0 10px rgba(255,170,68,0.5);
+        }
+        
+        .time-panel button {
+            background: linear-gradient(135deg, #ffaa44, #ff8844);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: #1a1a2e;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .time-panel button:active {
+            transform: scale(0.95);
+        }
+        
+        .current-time {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            color: #ffcc88;
+            font-weight: bold;
+        }
+        
+        /* SAYYORA MA'LUMOT PANELI - CHAP TOMONDA */
+        .planet-info {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            padding: 14px 22px;
+            border-radius: 20px;
+            color: white;
+            font-family: monospace;
+            font-size: 13px;
+            z-index: 20;
+            border-left: 4px solid #ffaa44;
+            pointer-events: none;
+            max-width: 240px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        
+        .planet-info h4 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            color: #ffaa66;
+        }
+        
+        .planet-info p {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        
+        /* ORQAGA QAYTISH TUGMASI - O'NG TOMONDA PASTDA */
+        .back-btn {
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(30,20,10,0.9));
+            border: 3px solid #ffaa66;
+            color: #ffaa66;
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 30;
+            transition: all 0.3s;
+            display: none;
+            backdrop-filter: blur(10px);
+            pointer-events: auto;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            letter-spacing: 1px;
+        }
+        
+        .back-btn:active {
+            transform: scale(0.96);
+            background: #ffaa66;
+            color: #1a1a2e;
+        }
+        
+        .controls-note {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.6);
+            background: rgba(0,0,0,0.6);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 11px;
+            pointer-events: none;
+            z-index: 20;
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+            white-space: nowrap;
+        }
+        
+        .instruction {
+            position: absolute;
+            top: 90px;
+            left: 20px;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 11px;
+            color: #ffaa66;
+            font-family: monospace;
+            pointer-events: none;
+            z-index: 20;
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+        }
+        
+        /* Mobil uchun moslashuv */
+        @media (max-width: 700px) {
+            .time-panel { padding: 8px 15px; gap: 10px; top: 10px; }
+            .time-panel label { font-size: 11px; }
+            .time-panel input { padding: 6px 12px; font-size: 11px; width: 140px; }
+            .time-panel button { padding: 6px 15px; font-size: 11px; }
+            .current-time { padding: 4px 10px; font-size: 10px; }
+            
+            .planet-info { 
+                bottom: 20px; 
+                left: 10px; 
+                padding: 10px 16px; 
+                max-width: 170px;
+            }
+            .planet-info h4 { font-size: 12px; }
+            .planet-info p { font-size: 9px; }
+            
+            .back-btn { 
+                bottom: 20px; 
+                right: 10px; 
+                padding: 8px 16px; 
+                font-size: 12px;
+            }
+            
+            .controls-note { 
+                font-size: 8px; 
+                padding: 4px 10px;
+                bottom: 10px;
+                white-space: nowrap;
+            }
+            .instruction { 
+                top: 75px; 
+                left: 10px; 
+                font-size: 8px;
+                padding: 4px 10px;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            .planet-info { bottom: 15px; padding: 8px 12px; }
+            .planet-info h4 { font-size: 11px; margin-bottom: 4px; }
+            .planet-info p { font-size: 8px; margin: 3px 0; }
+            .back-btn { bottom: 15px; padding: 6px 14px; font-size: 11px; }
+            .instruction { top: 65px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="time-panel">
+        <label>📅 VAQT:</label>
+        <input type="datetime-local" id="timeInput" value="2026-05-15T12:00">
+        <button id="jumpToTimeBtn">🎯 HISOBLA</button>
+        <div class="current-time" id="currentTimeDisplay">2026-05-15</div>
+    </div>
+    
+    <div class="planet-info" id="planetInfo">
+        <h4>🌟 <span id="selected-planet-name">Yer</span></h4>
+        <p>📐 Orbita burchagi: <span id="angle-deg">0</span>°</p>
+        <p>📏 Quyoshdan masofa: <span id="distance-abs">4.9</span> a.b.</p>
+        <p>🛰️ Yo'ldoshlar soni: <span id="moon-count">1</span> ta</p>
+    </div>
+    
+    <div class="instruction">
+        💡 MASLAHAT: Sayyorani bosing - kattalashib ko'ring!
+    </div>
+    
+    <button class="back-btn" id="backBtn">🔙 QUYOSH TIZIMIGA QAYTISH</button>
+    
+    <div class="controls-note">
+        🖱️ Sichqoncha: aylantirish | O'ng tugma - siljitish | G'ildirak - zoom
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        
+        // Sahna
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x010218);
+        scene.fog = new THREE.FogExp2(0x010218, 0.00008);
+        
+        // Kamera
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 5, 18);
+        
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        document.body.appendChild(renderer.domElement);
+        
+        // Effektlar
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.9, 0.3, 0.7);
+        bloomPass.threshold = 0.1;
+        bloomPass.strength = 0.45;
+        const effectComposer = new EffectComposer(renderer);
+        effectComposer.addPass(renderScene);
+        effectComposer.addPass(bloomPass);
+        
+        // Kontroller
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.rotateSpeed = 0.8;
+        controls.zoomSpeed = 1.0;
+        controls.panSpeed = 0.7;
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        controls.target.set(0, 0, 0);
+        
+        // Yoritish
+        const ambientLight = new THREE.AmbientLight(0x111122);
+        scene.add(ambientLight);
+        const sunLight = new THREE.PointLight(0xffaa66, 1.6, 55);
+        sunLight.position.set(0, 0, 0);
+        scene.add(sunLight);
+        const fillLight = new THREE.DirectionalLight(0x6688aa, 0.4);
+        fillLight.position.set(2, 3, 2);
+        scene.add(fillLight);
+        const rimLight = new THREE.PointLight(0x4466aa, 0.3);
+        rimLight.position.set(-3, 2, -4);
+        scene.add(rimLight);
+        
+        // Yulduzlar
+        const starGeo = new THREE.BufferGeometry();
+        const starCount = 3500;
+        const starPos = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount; i++) {
+            starPos[i*3] = (Math.random() - 0.5) * 800;
+            starPos[i*3+1] = (Math.random() - 0.5) * 500;
+            starPos[i*3+2] = (Math.random() - 0.5) * 200 - 80;
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true }));
+        scene.add(stars);
+        
+        // Quyosh
+        const sunGeo = new THREE.SphereGeometry(1.6, 128, 128);
+        const sunMat = new THREE.MeshStandardMaterial({ color: 0xffaa55, emissive: 0xff4422, emissiveIntensity: 0.95, metalness: 0.9, roughness: 0.2 });
+        const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+        scene.add(sunMesh);
+        
+        const sunGlowGeo = new THREE.SphereGeometry(1.85, 64, 64);
+        const sunGlowMat = new THREE.MeshBasicMaterial({ color: 0xff8844, transparent: true, opacity: 0.12, side: THREE.BackSide });
+        const sunGlow = new THREE.Mesh(sunGlowGeo, sunGlowMat);
+        scene.add(sunGlow);
+        
+        // ========== SAYYORALAR TEKSTURALARI ==========
+        function createCraterTexture(baseColor, darkColor, craterCount) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024; canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = baseColor;
+            ctx.fillRect(0, 0, 1024, 1024);
+            for(let i = 0; i < craterCount; i++) {
+                ctx.fillStyle = darkColor;
+                ctx.beginPath(); ctx.arc(Math.random()*1024, Math.random()*1024, 3+Math.random()*15, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = `rgba(0,0,0,0.25)`;
+                ctx.beginPath(); ctx.arc(Math.random()*1024, Math.random()*1024, 2+Math.random()*10, 0, Math.PI*2);
+                ctx.fill();
+            }
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            return tex;
+        }
+        
+        const mercuryTex = createCraterTexture('#9a7a5a', '#6a4a2a', 800);
+        
+        const venusCanvas = document.createElement('canvas');
+        venusCanvas.width = 1024; venusCanvas.height = 1024;
+        let ctx = venusCanvas.getContext('2d');
+        ctx.fillStyle = '#e8b870';
+        ctx.fillRect(0, 0, 1024, 1024);
+        for(let i=0;i<300;i++) {
+            ctx.fillStyle = `rgba(180,120,50,0.35)`;
+            ctx.beginPath(); ctx.ellipse(Math.random()*1024, Math.random()*1024, 10+Math.random()*35, 8+Math.random()*28, Math.random()*Math.PI, 0, Math.PI*2);
+            ctx.fill();
+        }
+        const venusTex = new THREE.CanvasTexture(venusCanvas);
+        
+        const earthCanvas = document.createElement('canvas');
+        earthCanvas.width = 1024; earthCanvas.height = 1024;
+        ctx = earthCanvas.getContext('2d');
+        ctx.fillStyle = '#2a6f8f';
+        ctx.fillRect(0, 0, 1024, 1024);
+        ctx.fillStyle = '#5aae7e';
+        ctx.beginPath(); ctx.ellipse(250, 400, 100, 85, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(700, 420, 130, 100, 0.1, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(850, 280, 90, 70, -0.2, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(550, 650, 80, 65, 0.15, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(400, 180, 70, 55, -0.1, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = `rgba(255,255,255,0.3)`;
+        for(let i=0;i<250;i++) {
+            ctx.beginPath(); ctx.arc(Math.random()*1024, Math.random()*1024, 5+Math.random()*20, 0, Math.PI*2);
+            ctx.fill();
+        }
+        const earthTex = new THREE.CanvasTexture(earthCanvas);
+        
+        const marsTex = createCraterTexture('#c06a3a', '#8a3a1a', 700);
+        
+        const jupiterCanvas = document.createElement('canvas');
+        jupiterCanvas.width = 1024; jupiterCanvas.height = 1024;
+        ctx = jupiterCanvas.getContext('2d');
+        ctx.fillStyle = '#c8a070';
+        ctx.fillRect(0, 0, 1024, 1024);
+        for(let i=0;i<45;i++) {
+            const y = (i/45)*1024;
+            ctx.fillStyle = `rgba(160,100,60,0.55)`;
+            ctx.fillRect(0, y, 1024, 18);
+        }
+        for(let i=0;i<25;i++) {
+            const y = (i/25)*1024;
+            ctx.fillStyle = `rgba(100,60,35,0.5)`;
+            ctx.fillRect(0, y, 1024, 25);
+        }
+        ctx.fillStyle = '#aa5533';
+        ctx.beginPath(); ctx.ellipse(650, 550, 70, 45, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#cc6644';
+        ctx.beginPath(); ctx.ellipse(640, 540, 45, 30, 0, 0, Math.PI*2); ctx.fill();
+        const jupiterTex = new THREE.CanvasTexture(jupiterCanvas);
+        jupiterTex.wrapS = THREE.RepeatWrapping;
+        jupiterTex.repeat.set(2.5, 1);
+        
+        const saturnCanvas = document.createElement('canvas');
+        saturnCanvas.width = 1024; saturnCanvas.height = 1024;
+        ctx = saturnCanvas.getContext('2d');
+        ctx.fillStyle = '#e0c8a0';
+        ctx.fillRect(0, 0, 1024, 1024);
+        for(let i=0;i<35;i++) {
+            const y = (i/35)*1024;
+            ctx.fillStyle = `rgba(180,140,90,0.5)`;
+            ctx.fillRect(0, y, 1024, 22);
+        }
+        const saturnTex = new THREE.CanvasTexture(saturnCanvas);
+        saturnTex.wrapS = THREE.RepeatWrapping;
+        saturnTex.repeat.set(1.5, 1);
+        
+        const uranCanvas = document.createElement('canvas');
+        uranCanvas.width = 1024; uranCanvas.height = 1024;
+        ctx = uranCanvas.getContext('2d');
+        ctx.fillStyle = '#a8d0e0';
+        ctx.fillRect(0, 0, 1024, 1024);
+        for(let i=0;i<25;i++) {
+            const y = (i/25)*1024;
+            ctx.fillStyle = `rgba(100,160,180,0.35)`;
+            ctx.fillRect(0, y, 1024, 20);
+        }
+        const uranTex = new THREE.CanvasTexture(uranCanvas);
+        
+        const neptunTex = createCraterTexture('#3a6ea5', '#1a4e85', 400);
+        
+        const planetsData = [
+            { name: "Merkuriy", radius: 0.22, distance: 2.8, period: 88, tex: mercuryTex, color: 0x9a7a5a, roughness: 0.7, metalness: 0.3, moons: [] },
+            { name: "Venera",   radius: 0.27, distance: 3.8, period: 225, tex: venusTex, color: 0xe8b870, roughness: 0.6, metalness: 0.1, moons: [] },
+            { name: "Yer",      radius: 0.32, distance: 4.9, period: 365, tex: earthTex, color: 0x4da6ff, roughness: 0.5, metalness: 0.1, moons: [{ name: "🌙 Oy", radius: 0.08, distance: 0.7, color: 0xccccaa, speed: 0.05 }] },
+            { name: "Mars",     radius: 0.27, distance: 6.0, period: 687, tex: marsTex, color: 0xc06a3a, roughness: 0.7, metalness: 0.05, moons: [{ name: "Fobos", radius: 0.05, distance: 0.5, color: 0xaa9988, speed: 0.08 }, { name: "Deymos", radius: 0.04, distance: 0.8, color: 0xaa8866, speed: 0.06 }] },
+            { name: "Yupiter",  radius: 0.60, distance: 8.2, period: 4333, tex: jupiterTex, color: 0xc8a070, roughness: 0.55, metalness: 0.2, moons: [{ name: "Io", radius: 0.09, distance: 1.0, color: 0xffaa66, speed: 0.04 }, { name: "Europa", radius: 0.08, distance: 1.4, color: 0xaaddff, speed: 0.035 }, { name: "Ganymede", radius: 0.1, distance: 1.8, color: 0xccaa88, speed: 0.03 }] },
+            { name: "Saturn",   radius: 0.53, distance: 10.0, period: 10759, tex: saturnTex, color: 0xe0c8a0, roughness: 0.5, metalness: 0.25, moons: [{ name: "Titan", radius: 0.1, distance: 1.2, color: 0xddbb99, speed: 0.028 }, { name: "Rhea", radius: 0.06, distance: 0.85, color: 0xccaa88, speed: 0.035 }] },
+            { name: "Uran",     radius: 0.42, distance: 12.1, period: 30687, tex: uranTex, color: 0xa8d0e0, roughness: 0.48, metalness: 0.15, moons: [{ name: "Titania", radius: 0.07, distance: 0.9, color: 0xaaccdd, speed: 0.03 }] },
+            { name: "Neptun",   radius: 0.41, distance: 14.0, period: 60190, tex: neptunTex, color: 0x3a6ea5, roughness: 0.5, metalness: 0.18, moons: [{ name: "Triton", radius: 0.08, distance: 1.0, color: 0x88aacc, speed: 0.03 }] }
+        ];
+        
+        const planets = [];
+        const orbits = [];
+        const allMoons = [];
+        
+        planetsData.forEach((data, idx) => {
+            const geometry = new THREE.SphereGeometry(data.radius, 128, 128);
+            const material = new THREE.MeshStandardMaterial({
+                map: data.tex,
+                color: data.color,
+                roughness: data.roughness,
+                metalness: data.metalness
+            });
+            const planet = new THREE.Mesh(geometry, material);
+            planet.userData = {
+                name: data.name, distance: data.distance, period: data.period,
+                moons: data.moons, angle: Math.random() * Math.PI * 2, radius: data.radius
+            };
+            scene.add(planet);
+            planets.push(planet);
+            
+            const points = [];
+            for (let i = 0; i <= 180; i++) {
+                const ang = (i / 180) * Math.PI * 2;
+                points.push(new THREE.Vector3(Math.cos(ang) * data.distance, 0, Math.sin(ang) * data.distance));
+            }
+            const orbitGeo = new THREE.BufferGeometry().setFromPoints(points);
+            const orbitMat = new THREE.LineBasicMaterial({ color: 0x88aaff, transparent: true, opacity: 0.25 });
+            const orbitLine = new THREE.LineLoop(orbitGeo, orbitMat);
+            scene.add(orbitLine);
+            orbits.push(orbitLine);
+            
+            data.moons.forEach((moonData) => {
+                const moonGeo = new THREE.SphereGeometry(moonData.radius, 64, 64);
+                const moonMat = new THREE.MeshStandardMaterial({ color: moonData.color, roughness: 0.7 });
+                const moon = new THREE.Mesh(moonGeo, moonMat);
+                scene.add(moon);
+                allMoons.push({ mesh: moon, parentPlanet: planet, data: moonData, angle: Math.random() * Math.PI * 2 });
+                moon.visible = false;
+            });
+        });
+        
+        const saturnPlanet = planets[5];
+        const mainRingGeo = new THREE.TorusGeometry(0.94, 0.1, 128, 256);
+        const mainRingMat = new THREE.MeshStandardMaterial({ color: 0xc8b080, emissive: 0x331100, metalness: 0.4, roughness: 0.5, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+        const mainRing = new THREE.Mesh(mainRingGeo, mainRingMat);
+        mainRing.rotation.x = Math.PI / 2.2;
+        scene.add(mainRing);
+        
+        const outerRingGeo = new THREE.TorusGeometry(1.1, 0.07, 96, 256);
+        const outerRingMat = new THREE.MeshStandardMaterial({ color: 0xaa9060, metalness: 0.3, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+        const outerRing = new THREE.Mesh(outerRingGeo, outerRingMat);
+        outerRing.rotation.x = Math.PI / 2.2;
+        scene.add(outerRing);
+        
+        const asteroidCount = 1200;
+        const astPos = new Float32Array(asteroidCount * 3);
+        for (let i = 0; i < asteroidCount; i++) {
+            const r = 7.2 + Math.random() * 2.8;
+            const a = Math.random() * Math.PI * 2;
+            astPos[i*3] = Math.cos(a) * r;
+            astPos[i*3+1] = (Math.random() - 0.5) * 0.9;
+            astPos[i*3+2] = Math.sin(a) * r;
+        }
+        const astGeo = new THREE.BufferGeometry();
+        astGeo.setAttribute('position', new THREE.BufferAttribute(astPos, 3));
+        const astField = new THREE.Points(astGeo, new THREE.PointsMaterial({ color: 0xaa8866, size: 0.045 }));
+        scene.add(astField);
+        
+        // ========== VAQT TIZIMI ==========
+        let simulationDays = 0;
+        let lastUpdate = performance.now();
+        const TIME_SCALE = 4.0;
+        const refDate = new Date(Date.UTC(2026, 4, 15, 12, 0, 0));
+        
+        let currentView = "solar";
+        let focusedPlanet = null;
+        let isAnimating = false;
+        let savedOffset = null;
+        
+        function getAngle(period, days) {
+            return ((days / period) * Math.PI * 2) % (Math.PI * 2);
+        }
+        
+        function updatePlanets(days) {
+            planets.forEach((p, i) => {
+                const d = planetsData[i];
+                const ang = getAngle(d.period, days);
+                p.userData.angle = ang;
+                p.position.set(Math.cos(ang) * d.distance, 0, Math.sin(ang) * d.distance);
+                p.rotation.y += 0.008;
+            });
+            
+            allMoons.forEach(m => {
+                if (m.mesh.visible && m.parentPlanet) {
+                    m.angle += m.data.speed * 0.6;
+                    const x = Math.cos(m.angle) * m.data.distance;
+                    const z = Math.sin(m.angle) * m.data.distance;
+                    m.mesh.position.set(
+                        m.parentPlanet.position.x + x, 
+                        Math.sin(m.angle * 1.5) * 0.07, 
+                        m.parentPlanet.position.z + z
+                    );
+                    m.mesh.rotation.y += 0.02;
+                }
+            });
+            
+            if (mainRing && saturnPlanet) {
+                mainRing.position.copy(saturnPlanet.position);
+                outerRing.position.copy(saturnPlanet.position);
+                mainRing.rotation.z += 0.0025;
+                outerRing.rotation.z -= 0.002;
+            }
+            
+            if (currentView === "planet" && focusedPlanet && !isAnimating && savedOffset) {
+                const targetPos = focusedPlanet.position.clone().add(savedOffset);
+                const targetLook = focusedPlanet.position.clone();
+                camera.position.lerp(targetPos, 0.12);
+                controls.target.lerp(targetLook, 0.12);
+                controls.update();
+            }
+            
+            const realDate = new Date(refDate.getTime() + days * 86400000);
+            document.getElementById('currentTimeDisplay').innerHTML = realDate.toISOString().slice(0, 16).replace('T', ' ');
+            
+            if (currentView === "planet" && focusedPlanet) {
+                const idx = planets.findIndex(p => p === focusedPlanet);
+                if (idx !== -1) {
+                    const pd = planetsData[idx];
+                    const ang = getAngle(pd.period, days);
+                    document.getElementById('selected-planet-name').innerHTML = pd.name;
+                    document.getElementById('angle-deg').innerHTML = (ang * 180 / Math.PI).toFixed(1) + "°";
+                    document.getElementById('distance-abs').innerHTML = pd.distance + " a.b.";
+                    document.getElementById('moon-count').innerHTML = pd.moons.length;
+                }
+            } else {
+                const earth = planetsData[2];
+                const ang = getAngle(earth.period, days);
+                document.getElementById('selected-planet-name').innerHTML = "Yer";
+                document.getElementById('angle-deg').innerHTML = (ang * 180 / Math.PI).toFixed(1) + "°";
+                document.getElementById('distance-abs').innerHTML = earth.distance + " a.b.";
+                document.getElementById('moon-count').innerHTML = earth.moons.length;
+            }
+        }
+        
+        function jumpToTime(dtStr) {
+            const target = new Date(dtStr);
+            if (!isNaN(target)) {
+                simulationDays = (target - refDate) / 86400000;
+                updatePlanets(simulationDays);
+            }
+        }
+        
+        function focusOnPlanet(planet, pData) {
+            if (currentView === "planet" && focusedPlanet === planet) return;
+            if (isAnimating) return;
+            
+            currentView = "planet";
+            focusedPlanet = planet;
+            
+            allMoons.forEach(m => {
+                m.mesh.visible = (m.parentPlanet === planet);
+            });
+            
+            planets.forEach(p => {
+                if (p !== planet) {
+                    p.material.transparent = true;
+                    p.material.opacity = 0.35;
+                } else {
+                    p.material.opacity = 1;
+                    p.material.transparent = false;
+                }
+            });
+            
+            const dist = pData.radius * 5.5;
+            const offset = new THREE.Vector3(dist * 1.4, dist * 0.7, dist * 1.7);
+            savedOffset = null;
+            animateCamera(planet.position.clone().add(offset), planet.position.clone(), () => {
+                savedOffset = camera.position.clone().sub(planet.position);
+            });
+            
+            const backBtn = document.getElementById('backBtn');
+            backBtn.style.display = "block";
+        }
+        
+        function backToSolar() {
+            if (currentView === "solar" || isAnimating) return;
+            
+            currentView = "solar";
+            
+            allMoons.forEach(m => {
+                m.mesh.visible = false;
+            });
+            
+            planets.forEach(p => {
+                p.material.opacity = 1;
+                p.material.transparent = false;
+            });
+            
+            animateCamera(new THREE.Vector3(0, 5, 18), new THREE.Vector3(0, 0, 0), () => {
+                focusedPlanet = null;
+                savedOffset = null;
+            });
+            
+            const backBtn = document.getElementById('backBtn');
+            backBtn.style.display = "none";
+        }
+        
+        function animateCamera(targetPos, targetLook, onComplete) {
+            if (isAnimating) return;
+            isAnimating = true;
+            
+            const startPos = camera.position.clone();
+            const startTarget = controls.target.clone();
+            const startTime = performance.now();
+            const duration = 800;
+            
+            function update(now) {
+                const elapsed = now - startTime;
+                const t = Math.min(1, elapsed / duration);
+                const ease = 1 - Math.pow(1 - t, 3);
+                
+                camera.position.lerpVectors(startPos, targetPos, ease);
+                controls.target.lerpVectors(startTarget, targetLook, ease);
+                controls.update();
+                
+                if (t < 1) {
+                    requestAnimationFrame(update);
+                } else {
+                    isAnimating = false;
+                    if (onComplete) onComplete();
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+        
+        setInterval(() => {
+            if (currentView === "planet" && focusedPlanet && !isAnimating) {
+                savedOffset = camera.position.clone().sub(focusedPlanet.position);
+            }
+        }, 50);
+        
+        let animTime = 0;
+        
+        function simLoop(now) {
+            const delta = Math.min(0.05, (now - lastUpdate) / 1000);
+            if (delta > 0) {
+                simulationDays += delta * TIME_SCALE;
+                updatePlanets(simulationDays);
+            }
+            lastUpdate = now;
+        }
+        
+        function renderLoop() {
+            const now = performance.now();
+            simLoop(now);
+            requestAnimationFrame(renderLoop);
+            animTime += 0.016;
+            
+            stars.rotation.y += 0.0001;
+            astField.rotation.y += 0.0006;
+            sunMesh.rotation.y += 0.001;
+            sunGlow.rotation.y += 0.0008;
+            sunLight.intensity = 1.5 + Math.sin(animTime * 0.5) * 0.12;
+            
+            controls.update();
+            effectComposer.render();
+        }
+        
+        // ========== VOQEALAR ==========
+        const timeInput = document.getElementById('timeInput');
+        const jumpBtn = document.getElementById('jumpToTimeBtn');
+        const backBtn = document.getElementById('backBtn');
+        
+        jumpBtn.addEventListener('click', () => {
+            let val = timeInput.value;
+            if (!val) val = "2026-05-15T12:00";
+            jumpToTime(val);
+        });
+        
+        backBtn.addEventListener('click', backToSolar);
+        
+        const raycaster = new THREE.Raycaster();
+        const mouseVec = new THREE.Vector2();
+        
+        function handleClick(event) {
+            if (isAnimating) return;
+            
+            let clientX, clientY;
+            if (event.touches) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+                event.preventDefault();
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+            
+            mouseVec.x = (clientX / renderer.domElement.clientWidth) * 2 - 1;
+            mouseVec.y = -(clientY / renderer.domElement.clientHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouseVec, camera);
+            const hits = raycaster.intersectObjects(planets);
+            
+            if (hits.length > 0 && currentView !== "planet") {
+                const hitPlanet = hits[0].object;
+                const idx = planets.findIndex(p => p === hitPlanet);
+                if (idx !== -1) {
+                    focusOnPlanet(planets[idx], planetsData[idx]);
+                }
+            }
+        }
+        
+        window.addEventListener('click', handleClick);
+        window.addEventListener('touchstart', handleClick);
+        
+        const startDate = new Date("2026-05-15T12:00");
+        simulationDays = (startDate - refDate) / 86400000;
+        lastUpdate = performance.now();
+        updatePlanets(simulationDays);
+        
+        allMoons.forEach(m => m.mesh.visible = false);
+        
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            effectComposer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        renderLoop();
+        
+        console.log("✅ Tugma va ma'lumot paneli ajratildi | Tugma o'ng tomonda, ma'lumot chap tomonda | Hech qanday to'qnashuv yo'q");
+    </script>
+</body>
+</html>
