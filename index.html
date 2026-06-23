@@ -3,251 +3,723 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>3D Quyosh Tizimi - Realistik Sayyoralar</title>
+    <title>3D Quyosh Tizimi - Premium Simulyator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --glow-color: rgba(0, 229, 255, 0.4);
+            --bg-glass: rgba(8, 8, 20, 0.65);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00e5ff;
+            --accent-orange: #ff9f43;
+            --font-main: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             margin: 0;
             overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #010105;
+            color: #f1f2f6;
+            font-family: var(--font-main);
+            user-select: none;
+            -webkit-user-select: none;
             touch-action: none;
-            background: #000;
         }
-        
-        /* VAQT PANELI */
-        .time-panel {
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.01);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Glassmorphism panel */
+        .glass-panel {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(0, 229, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.08);
+        }
+
+        /* Sidebar - Planetlar ro'yxati */
+        .sidebar {
             position: absolute;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(15px);
-            padding: 12px 20px;
-            border-radius: 60px;
-            color: white;
-            z-index: 20;
+            top: 20px;
+            left: 20px;
+            bottom: 20px;
+            width: 280px;
+            z-index: 100;
             display: flex;
-            gap: 15px;
-            align-items: center;
-            font-family: monospace;
-            border: 2px solid rgba(255, 200, 100, 0.5);
-            box-shadow: 0 0 30px rgba(0,0,0,0.7);
+            flex-direction: column;
+            padding: 24px;
+            gap: 20px;
             pointer-events: auto;
-            white-space: nowrap;
         }
-        
-        .time-panel label {
-            font-size: 14px;
-            font-weight: bold;
-            color: #ffcc88;
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        
-        .time-panel input {
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #ffaa66;
-            color: #ffdd99;
-            padding: 8px 15px;
-            border-radius: 30px;
-            font-family: monospace;
-            font-size: 14px;
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            fill: var(--accent-cyan);
+            filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.6));
+        }
+
+        .logo-text {
+            font-size: 19px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            background: linear-gradient(135deg, #ffffff, #a5c2f4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .planet-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 4px;
+        }
+
+        .planet-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #d1d2d6;
             cursor: pointer;
-            width: 180px;
-            font-weight: bold;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            text-align: left;
+            transition: all 0.2s ease;
         }
-        
-        .time-panel input:focus {
-            outline: none;
-            border-color: #ffcc44;
-            box-shadow: 0 0 10px rgba(255,170,68,0.5);
+
+        .planet-btn:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateX(4px);
+            color: #ffffff;
         }
-        
-        .time-panel button {
-            background: linear-gradient(135deg, #ffaa44, #ff8844);
+
+        .planet-btn.active {
+            background: rgba(0, 229, 255, 0.12);
+            border-color: rgba(0, 229, 255, 0.45);
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
+        }
+
+        .planet-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        /* Info Card - Sayyora ma'lumotlari */
+        .info-card {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            bottom: 20px;
+            width: 380px;
+            z-index: 100;
+            padding: 26px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            transform: translateX(calc(100% + 40px));
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: auto;
+        }
+
+        .info-card.visible {
+            transform: translateX(0);
+        }
+
+        .info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .info-title-group h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .info-title-group span {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
             border: none;
-            padding: 8px 20px;
-            border-radius: 30px;
-            color: #1a1a2e;
-            font-weight: bold;
             cursor: pointer;
-            font-size: 14px;
-            transition: transform 0.2s;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            color: rgba(255, 255, 255, 0.4);
+            transition: color 0.2s;
+            padding: 4px;
         }
-        
-        .time-panel button:active {
+
+        .close-btn:hover {
+            color: #ffffff;
+        }
+
+        .info-scroll {
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-right: 4px;
+            flex-grow: 1;
+        }
+
+        .info-desc {
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: #b2b7c2;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .stat-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .stat-val {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .moons-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .moons-title {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 6px;
+        }
+
+        .moons-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .moon-badge {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 10.5px;
+            color: #cccccc;
+        }
+
+        /* Boshqaruv paneli - Pastki qism */
+        .bottom-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 320px;
+            right: 20px;
+            z-index: 100;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            transition: right 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: auto;
+        }
+
+        body.info-open .bottom-bar {
+            right: 420px;
+        }
+
+        .ctrl-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .play-pause-btn {
+            background: linear-gradient(135deg, #00d2ff, #00e5ff);
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: #020208;
+            box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
+            transition: all 0.2s;
+        }
+
+        .play-pause-btn:hover {
+            transform: scale(1.06);
+            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.5);
+        }
+
+        .play-pause-btn:active {
             transform: scale(0.95);
         }
-        
-        .current-time {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 13px;
-            color: #ffcc88;
-            font-weight: bold;
+
+        .play-pause-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
         }
-        
-        /* SAYYORA MA'LUMOT PANELI - CHAP TOMONDA */
-        .planet-info {
-            position: absolute;
-            bottom: 30px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(15px);
-            padding: 14px 22px;
-            border-radius: 20px;
-            color: white;
-            font-family: monospace;
-            font-size: 13px;
-            z-index: 20;
-            border-left: 4px solid #ffaa44;
-            pointer-events: none;
-            max-width: 240px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+
+        .speed-ctrl {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 140px;
         }
-        
-        .planet-info h4 {
-            margin: 0 0 8px 0;
-            font-size: 16px;
-            color: #ffaa66;
+
+        .speed-label-group {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 0.8px;
         }
-        
-        .planet-info p {
-            margin: 5px 0;
-            font-size: 12px;
+
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.12);
+            outline: none;
         }
-        
-        /* ORQAGA QAYTISH TUGMASI - O'NG TOMONDA PASTDA */
-        .back-btn {
-            position: absolute;
-            bottom: 30px;
-            right: 20px;
-            background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(30,20,10,0.9));
-            border: 3px solid #ffaa66;
-            color: #ffaa66;
-            padding: 12px 24px;
-            border-radius: 50px;
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
             cursor: pointer;
-            font-family: monospace;
-            font-size: 16px;
-            font-weight: bold;
-            z-index: 30;
-            transition: all 0.3s;
-            display: none;
-            backdrop-filter: blur(10px);
-            pointer-events: auto;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-            letter-spacing: 1px;
+            box-shadow: 0 0 6px var(--accent-cyan);
+            transition: transform 0.1s;
         }
-        
-        .back-btn:active {
-            transform: scale(0.96);
-            background: #ffaa66;
-            color: #1a1a2e;
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
         }
-        
-        .controls-note {
+
+        .time-ctrl {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .date-picker {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 13px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .date-picker:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .jump-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .jump-btn:hover {
+            background: #ffffff;
+            color: #020208;
+            border-color: #ffffff;
+        }
+
+        .toggles-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 11.5px;
+            color: rgba(255, 255, 255, 0.65);
+            transition: color 0.2s;
+        }
+
+        .toggle-item:hover {
+            color: #ffffff;
+        }
+
+        .toggle-item input {
+            cursor: pointer;
+            accent-color: var(--accent-cyan);
+        }
+
+        /* Floating Qaytish Tugmasi */
+        .return-btn {
             position: absolute;
-            bottom: 15px;
+            top: 25px;
             left: 50%;
-            transform: translateX(-50%);
-            color: rgba(255,255,255,0.6);
-            background: rgba(0,0,0,0.6);
-            padding: 8px 15px;
-            border-radius: 30px;
-            font-size: 11px;
+            transform: translateX(-50%) translateY(-20px);
+            opacity: 0;
             pointer-events: none;
-            z-index: 20;
-            font-weight: bold;
-            backdrop-filter: blur(5px);
-            white-space: nowrap;
-        }
-        
-        .instruction {
-            position: absolute;
-            top: 90px;
-            left: 20px;
-            background: rgba(0,0,0,0.6);
-            padding: 6px 14px;
+            z-index: 101;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(8, 8, 20, 0.85);
+            border: 1px solid var(--accent-cyan);
+            padding: 10px 20px;
             border-radius: 30px;
-            font-size: 11px;
-            color: #ffaa66;
+            color: var(--accent-cyan);
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 229, 255, 0.15);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: auto;
+        }
+
+        .return-btn.visible {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .return-btn:hover {
+            background: var(--accent-cyan);
+            color: #020208;
+            box-shadow: 0 4px 20px rgba(0, 229, 255, 0.4);
+        }
+
+        .return-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        /* Date Badge */
+        .date-badge {
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            padding: 8px 14px;
+            border-radius: 8px;
             font-family: monospace;
-            pointer-events: none;
-            z-index: 20;
-            font-weight: bold;
-            backdrop-filter: blur(5px);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 5px rgba(0, 229, 255, 0.4);
         }
-        
-        /* Mobil uchun moslashuv */
-        @media (max-width: 700px) {
-            .time-panel { padding: 8px 15px; gap: 10px; top: 10px; }
-            .time-panel label { font-size: 11px; }
-            .time-panel input { padding: 6px 12px; font-size: 11px; width: 140px; }
-            .time-panel button { padding: 6px 15px; font-size: 11px; }
-            .current-time { padding: 4px 10px; font-size: 10px; }
-            
-            .planet-info { 
-                bottom: 20px; 
-                left: 10px; 
-                padding: 10px 16px; 
-                max-width: 170px;
+
+        /* Tip Box */
+        .tip-box {
+            position: absolute;
+            bottom: 90px;
+            left: 20px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.35);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+            z-index: 90;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 1100px) {
+            .sidebar {
+                width: 240px;
+                padding: 18px;
             }
-            .planet-info h4 { font-size: 12px; }
-            .planet-info p { font-size: 9px; }
-            
-            .back-btn { 
-                bottom: 20px; 
-                right: 10px; 
-                padding: 8px 16px; 
-                font-size: 12px;
+            .info-card {
+                width: 330px;
+                padding: 20px;
             }
-            
-            .controls-note { 
-                font-size: 8px; 
-                padding: 4px 10px;
-                bottom: 10px;
+            .bottom-bar {
+                left: 280px;
+                padding: 12px 18px;
+            }
+            body.info-open .bottom-bar {
+                right: 370px;
+            }
+        }
+
+        @media (max-width: 850px) {
+            /* Mobile/Tablet layout */
+            .sidebar {
+                top: auto;
+                bottom: 15px;
+                left: 15px;
+                width: calc(100% - 30px);
+                height: 60px;
+                flex-direction: row;
+                align-items: center;
+                overflow: hidden;
+                padding: 10px 14px;
+            }
+            .logo-container {
+                border-right: 1px solid rgba(255,255,255,0.08);
+                padding-right: 12px;
+            }
+            .logo-text {
+                display: none;
+            }
+            .planet-list {
+                flex-direction: row;
+                padding-right: 0;
+                overflow-x: auto;
+                overflow-y: hidden;
+                width: 100%;
+            }
+            .planet-btn {
+                padding: 8px 12px;
                 white-space: nowrap;
             }
-            .instruction { 
-                top: 75px; 
-                left: 10px; 
-                font-size: 8px;
-                padding: 4px 10px;
+            .planet-btn span {
+                display: none;
             }
-        }
-        
-        @media (max-height: 600px) {
-            .planet-info { bottom: 15px; padding: 8px 12px; }
-            .planet-info h4 { font-size: 11px; margin-bottom: 4px; }
-            .planet-info p { font-size: 8px; margin: 3px 0; }
-            .back-btn { bottom: 15px; padding: 6px 14px; font-size: 11px; }
-            .instruction { top: 65px; }
+            .planet-btn.active span {
+                display: inline;
+            }
+            
+            .info-card {
+                top: 15px;
+                right: 15px;
+                left: 15px;
+                bottom: 90px;
+                width: auto;
+                transform: translateY(calc(100% + 110px));
+            }
+            .info-card.visible {
+                transform: translateY(0);
+            }
+            
+            .bottom-bar {
+                top: 15px;
+                bottom: auto;
+                left: 15px;
+                right: 15px;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 14px;
+                gap: 10px;
+            }
+            body.info-open .bottom-bar {
+                right: 15px;
+                display: none; /* Hide bottom panel on mobile when viewing planet data */
+            }
+            .ctrl-section, .time-ctrl {
+                justify-content: space-between;
+            }
+            .speed-ctrl {
+                width: 110px;
+            }
+            .toggles-group {
+                justify-content: space-around;
+                border-top: 1px solid rgba(255,255,255,0.05);
+                padding-top: 8px;
+            }
+            .tip-box {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="time-panel">
-        <label>📅 VAQT:</label>
-        <input type="datetime-local" id="timeInput" value="2026-05-15T12:00">
-        <button id="jumpToTimeBtn">🎯 HISOBLA</button>
-        <div class="current-time" id="currentTimeDisplay">2026-05-15</div>
+
+    <!-- Floating Return Button -->
+    <button class="return-btn" id="returnBtn">
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        QUYOSH TIZIMIGA QAYTISH
+    </button>
+
+    <!-- Sidebar - Planetlar Ro'yxati -->
+    <div class="sidebar glass-panel">
+        <div class="logo-container">
+            <svg class="logo-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.53c-.26-.81-1-1.4-1.9-1.4h-1v-3c0-.55-.45-1-1-1h-6v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.4z"/></svg>
+            <h1 class="logo-text">SOLAR 3D</h1>
+        </div>
+        <div class="planet-list" id="planetList">
+            <!-- Dinamik ravishda to'ldiriladi -->
+        </div>
     </div>
-    
-    <div class="planet-info" id="planetInfo">
-        <h4>🌟 <span id="selected-planet-name">Yer</span></h4>
-        <p>📐 Orbita burchagi: <span id="angle-deg">0</span>°</p>
-        <p>📏 Quyoshdan masofa: <span id="distance-abs">4.9</span> a.b.</p>
-        <p>🛰️ Yo'ldoshlar soni: <span id="moon-count">1</span> ta</p>
+
+    <!-- Info Card - Sayyora ma'lumotlari -->
+    <div class="info-card glass-panel" id="infoCard">
+        <div class="info-header">
+            <div class="info-title-group">
+                <h2 id="infoName">Yer</h2>
+                <span id="infoType">Toshli sayyora</span>
+            </div>
+            <button class="close-btn" id="closeCardBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        
+        <div class="info-scroll">
+            <p class="info-desc" id="infoDesc">Yer sayyorasi haqida qisqacha tavsif.</p>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">O'lchami (Radius)</div>
+                    <div class="stat-val" id="statRadius">6,371 km</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Quyoshdan masofa</div>
+                    <div class="stat-val" id="statDistance">1.0 a.b.</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Yil davomiyligi</div>
+                    <div class="stat-val" id="statPeriod">365 kun</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Kun davomiyligi</div>
+                    <div class="stat-val" id="statRotation">24 soat</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Harorat oralig'i</div>
+                    <div class="stat-val" id="statTemp">-80°C / +60°C</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Orbita burchagi</div>
+                    <div class="stat-val" id="statAngle">0°</div>
+                </div>
+            </div>
+
+            <div class="moons-section" id="moonsSection">
+                <div class="moons-title">🛰️ Tabiiy yo'ldoshlari</div>
+                <div class="moons-list" id="moonsList">
+                    <!-- Dinamik ravishda to'ldiriladi -->
+                </div>
+            </div>
+        </div>
     </div>
-    
-    <div class="instruction">
-        💡 MASLAHAT: Sayyorani bosing - kattalashib ko'ring!
+
+    <!-- Bottom Controls - Boshqaruv paneli -->
+    <div class="bottom-bar glass-panel">
+        <div class="ctrl-section">
+            <button class="play-pause-btn" id="playPauseBtn" title="To'xtatish / Davom ettirish">
+                <svg id="playIcon" viewBox="0 0 24 24" style="display:none;"><path d="M8 5v14l11-7z"/></svg>
+                <svg id="pauseIcon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+            <div class="speed-ctrl">
+                <div class="speed-label-group">
+                    <span>Simulyatsiya Tezligi</span>
+                    <span id="speedVal">1.0x</span>
+                </div>
+                <input type="range" min="0" max="20" step="0.5" value="1" class="slider" id="speedSlider">
+            </div>
+        </div>
+
+        <div class="time-ctrl">
+            <div class="date-badge" id="currentTimeBadge">2026-05-15 12:00</div>
+            <input type="datetime-local" class="date-picker" id="timeInput" value="2026-05-15T12:00">
+            <button class="jump-btn" id="jumpToTimeBtn">🎯 HISOBLA</button>
+        </div>
+
+        <div class="toggles-group">
+            <label class="toggle-item">
+                <input type="checkbox" id="orbitsToggle" checked>
+                <span>Orbitalar</span>
+            </label>
+            <label class="toggle-item">
+                <input type="checkbox" id="bgToggle" checked>
+                <span>Tumanliklar</span>
+            </label>
+            <label class="toggle-item">
+                <input type="checkbox" id="moonsToggle" checked>
+                <span>Yo'ldoshlar</span>
+            </label>
+        </div>
     </div>
-    
-    <button class="back-btn" id="backBtn">🔙 QUYOSH TIZIMIGA QAYTISH</button>
-    
-    <div class="controls-note">
-        🖱️ Sichqoncha: aylantirish | O'ng tugma - siljitish | G'ildirak - zoom
+
+    <div class="tip-box">
+        💡 Sichqoncha: Aylantirish | O'ng tugma - Siljitish | G'ildirak - Zoom | Sayyorani bosing - Yaqinlashtiring!
     </div>
 
     <script type="importmap">
@@ -265,342 +737,865 @@
         import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-        
-        // Sahna
+
+        // ========== MA'LUMOTLAR JADVALI ==========
+        const planetsInfoUz = {
+            "Quyosh": {
+                type: "Markaziy Yulduz",
+                radius: "696,340 km",
+                distance: "0 a.b.",
+                period: "—",
+                rotation: "25-35 kun",
+                temp: "+5,500°C dan +15 mln°C gacha",
+                moons: [],
+                desc: "Quyosh Quyosh tizimining markaziy yulduzi bo'lib, uning massasi butun tizim umumiy massasining 99.86% qismini tashkil qiladi. U vodorod va geliydan iborat ulkan plazma sharidir. Quyoshda ro'y beradigan termoyadroviy reaksiyalar natijasida ulkan miqdorda energiya ajralib chiqadi va u barcha sayyoralarni yoritib turadi."
+            },
+            "Merkuriy": {
+                type: "Toshli Sayyora",
+                radius: "2,439 km",
+                distance: "0.39 a.b. (57.9 mln km)",
+                period: "88 Yer kuni",
+                rotation: "59 Yer kuni",
+                temp: "-180°C dan +430°C gacha",
+                moons: [],
+                desc: "Quyoshga eng yaqin va Quyosh tizimidagi eng kichik sayyora. Unda atmosfera deyarli yo'q, shu sababli kechalari harorat kosmik sovuq darajagacha tushib ketadi, kunduzi esa o'ta yuqori bo'ladi. Merkuriy sirti Oy kabi kraterlar bilan qoplangan."
+            },
+            "Venera": {
+                type: "Toshli Sayyora",
+                radius: "6,051 km",
+                distance: "0.72 a.b. (108.2 mln km)",
+                period: "225 Yer kuni",
+                rotation: "243 Yer kuni (Teskari)",
+                temp: "+462°C (Doimiy)",
+                moons: [],
+                desc: "Quyosh tizimidagi eng issiq sayyora. Qalin karbonat angidrid atmosferasi va sulfat kislotali bulutlar kuchli issiqxona effektini (greenhouse effect) hosil qiladi, natijada harorat doimo yuqori bo'ladi. Venera o'z o'qi atrofida boshqa ko'plab sayyoralarga qarama-qarshi (retrograd) yo'nalishda aylanadi."
+            },
+            "Yer": {
+                type: "Toshli Sayyora",
+                radius: "6,371 km",
+                distance: "1.0 a.b. (149.6 mln km)",
+                period: "365.25 kun (1 yil)",
+                rotation: "24 soat (1 kun)",
+                temp: "-89°C dan +58°C gacha",
+                moons: ["Oy"],
+                desc: "Bizning uyimiz - koinotda hayot mavjudligi isbotlangan yagona osmon jismi. Sirtining 71% qismi suyuq suv (okeanlar) bilan qoplangan bo'lib, hayot uchun mos bo'lgan ideal atmosferaga ega. Kuchli magnit maydoni Yerni zararli quyosh shamollari va kosmik radiatsiyadan asraydi."
+            },
+            "Mars": {
+                type: "Toshli Sayyora",
+                radius: "3,389 km",
+                distance: "1.52 a.b. (227.9 mln km)",
+                period: "687 Yer kuni",
+                rotation: "24.6 soat",
+                temp: "-143°C dan +35°C gacha",
+                moons: ["Fobos", "Deymos"],
+                desc: "Mars 'Qizil sayyora' deb ham ataladi, chunki uning tuprog'ida temir oksidi (zang) miqdori juda ko'p. Marsda Quyosh tizimidagi eng baland o'chgan vulqon - Olimp tog'i (balandligi 22 km) va ulkan tektonik daralar (Valles Marineris) mavjud."
+            },
+            "Yupiter": {
+                type: "Gaz Giganti",
+                radius: "69,911 km",
+                distance: "5.20 a.b. (778.5 mln km)",
+                period: "11.86 yil",
+                rotation: "9.9 soat",
+                temp: "-108°C",
+                moons: ["Io", "Europa", "Ganimed"],
+                desc: "Quyosh tizimidagi eng ulkan sayyora bo'lib, uning massasi qolgan barcha sayyoralarning birgalikdagi massasidan 2.5 barobar ko'proqdir. Undagi mashhur 'Katta Qizil Dog'' - Yer kattaligidagi kuchli gaz bo'roni bo'lib, kamida 350 yildan beri tinmay aylanib turadi."
+            },
+            "Saturn": {
+                type: "Gaz Giganti",
+                radius: "58,232 km",
+                distance: "9.58 a.b. (1.43 mlrd km)",
+                period: "29.45 yil",
+                rotation: "10.7 soat",
+                temp: "-139°C",
+                moons: ["Titan", "Reya"],
+                desc: "Saturn o'zining ajoyib va yorqin halqalari bilan mashhur. Halqalar asosan muz bo'laklari, chang va toshlardan tashkil topgan bo'lib, juda yupqa. Saturn Quyosh tizimidagi eng kam zichlikka ega sayyora bo'lib, suvdan ham yengilroqdir."
+            },
+            "Uran": {
+                type: "Muz Giganti",
+                radius: "25,362 km",
+                distance: "19.22 a.b. (2.87 mlrd km)",
+                period: "84 yil",
+                rotation: "17.2 soat (Teskari)",
+                temp: "-224°C",
+                moons: ["Titaniya"],
+                desc: "Uran ko'k-yashil rangdagi muz gigantidir. Uning eng o'ziga xos tomoni shundaki, u o'z o'qi atrofida yonboshlab aylanadi (og'ish burchagi 98°), ya'ni u Quyosh atrofida 'dumalab' harakatlanadi. Shuningdek, uning vertikal joylashgan juda xira halqalari bor."
+            },
+            "Neptun": {
+                type: "Muz Giganti",
+                radius: "24,622 km",
+                distance: "30.05 a.b. (4.50 mlrd km)",
+                period: "164.8 yil",
+                rotation: "16.1 soat",
+                temp: "-201°C",
+                moons: ["Triton"],
+                desc: "Quyoshdan eng uzoqda joylashgan, to'q ko'k rangli muz giganti. Neptunda Quyosh tizimidagi eng shiddatli va kuchli shamollar esadi, ularning tezligi soatiga 2100 kilometrgacha yetadi. Uning yirik yo'ldoshi Triton sayyoraga teskari yo'nalishda aylanadi."
+            }
+        };
+
+        // Sahna & Kamera
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x010218);
-        scene.fog = new THREE.FogExp2(0x010218, 0.00008);
-        
-        // Kamera
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 5, 18);
-        
+        scene.background = new THREE.Color(0x010107);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(0, 8, 22);
+
         // Renderer
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ReinhardToneMapping;
-        renderer.toneMappingExposure = 1.2;
+        renderer.toneMappingExposure = 1.35;
         document.body.appendChild(renderer.domElement);
-        
-        // Effektlar
+
+        // Post-processing Bloom (Neon porlash effekti)
         const renderScene = new RenderPass(scene, camera);
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.9, 0.3, 0.7);
-        bloomPass.threshold = 0.1;
-        bloomPass.strength = 0.45;
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.7, 0.4, 0.85);
+        bloomPass.threshold = 0.08;
+        bloomPass.strength = 0.55;
         const effectComposer = new EffectComposer(renderer);
         effectComposer.addPass(renderScene);
         effectComposer.addPass(bloomPass);
-        
-        // Kontroller
+
+        // Kontroller (OrbitControls)
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.rotateSpeed = 0.8;
         controls.zoomSpeed = 1.0;
         controls.panSpeed = 0.7;
-        controls.enableZoom = true;
-        controls.enablePan = true;
+        controls.minDistance = 1;
+        controls.maxDistance = 150;
         controls.target.set(0, 0, 0);
-        
-        // Yoritish
-        const ambientLight = new THREE.AmbientLight(0x111122);
+
+        // Yoritish tizimi (PointLight + AmbientLight + fill)
+        const ambientLight = new THREE.AmbientLight(0x0e0e1a);
         scene.add(ambientLight);
-        const sunLight = new THREE.PointLight(0xffaa66, 1.6, 55);
+
+        // Quyoshdan chiqadigan yorug'lik
+        const sunLight = new THREE.PointLight(0xfff1e0, 2.2, 80);
         sunLight.position.set(0, 0, 0);
+        sunLight.castShadow = true;
         scene.add(sunLight);
-        const fillLight = new THREE.DirectionalLight(0x6688aa, 0.4);
-        fillLight.position.set(2, 3, 2);
+
+        // To'ldiruvchi yumshoq yo'naltirilgan yorug'lik (soyalar uchun)
+        const fillLight = new THREE.DirectionalLight(0x3a5b88, 0.35);
+        fillLight.position.set(5, 5, 5);
         scene.add(fillLight);
-        const rimLight = new THREE.PointLight(0x4466aa, 0.3);
-        rimLight.position.set(-3, 2, -4);
-        scene.add(rimLight);
-        
-        // Yulduzlar
+
+        // ========== DINAMIK FONDAGI TUMANLIK (NEBULA) SKYBOX ==========
+        function createNebulaTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 2048; canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+            
+            // Orqa fon ranglari va kosmik qorong'ulik
+            ctx.fillStyle = '#010107';
+            ctx.fillRect(0, 0, 2048, 1024);
+            
+            // Shaffof bulutsimon tumanlik chizish
+            const nebulas = [
+                { r: 90, g: 30, b: 160, a: 0.16, x: 500, y: 300, rad: 500 }, // Binafsha
+                { r: 20, g: 70, b: 170, a: 0.14, x: 1400, y: 700, rad: 600 }, // Moviy
+                { r: 160, g: 40, b: 90, a: 0.08, x: 1000, y: 400, rad: 450 }, // Qizg'ish
+                { r: 10, g: 120, b: 140, a: 0.07, x: 300, y: 800, rad: 400 }  // Firuza
+            ];
+            
+            ctx.filter = 'blur(100px)';
+            nebulas.forEach(neb => {
+                for (let k = 0; k < 2; k++) {
+                    const cx = neb.x + (Math.random() - 0.5) * 150;
+                    const cy = neb.y + (Math.random() - 0.5) * 150;
+                    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, neb.rad);
+                    grad.addColorStop(0, `rgba(${neb.r}, ${neb.g}, ${neb.b}, ${neb.a})`);
+                    grad.addColorStop(0.5, `rgba(${neb.r - 20}, ${neb.g}, ${neb.b + 10}, ${neb.a * 0.4})`);
+                    grad.addColorStop(1, 'rgba(0,0,0,0)');
+                    
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, neb.rad, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            });
+            
+            // Fonga yulduzlar sepish
+            ctx.filter = 'none';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+            for (let i = 0; i < 900; i++) {
+                const x = Math.random() * 2048;
+                const y = Math.random() * 1024;
+                const r = 0.4 + Math.random() * 1.0;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI*2);
+                ctx.fill();
+            }
+            
+            const tex = new THREE.CanvasTexture(canvas);
+            return tex;
+        }
+
+        const skyboxGeo = new THREE.SphereGeometry(900, 32, 32);
+        const skyboxMat = new THREE.MeshBasicMaterial({
+            map: createNebulaTexture(),
+            side: THREE.BackSide,
+            transparent: true,
+            opacity: 0.9
+        });
+        const skyboxMesh = new THREE.Mesh(skyboxGeo, skyboxMat);
+        scene.add(skyboxMesh);
+
+        // 3D Yulduzlar zarrachalari (Fokus yaqinida harakat tuyg'usi uchun)
         const starGeo = new THREE.BufferGeometry();
-        const starCount = 3500;
+        const starCount = 3000;
         const starPos = new Float32Array(starCount * 3);
         for (let i = 0; i < starCount; i++) {
-            starPos[i*3] = (Math.random() - 0.5) * 800;
-            starPos[i*3+1] = (Math.random() - 0.5) * 500;
-            starPos[i*3+2] = (Math.random() - 0.5) * 200 - 80;
+            starPos[i*3] = (Math.random() - 0.5) * 500;
+            starPos[i*3+1] = (Math.random() - 0.5) * 300;
+            starPos[i*3+2] = (Math.random() - 0.5) * 500;
         }
         starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-        const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true }));
+        const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.12, transparent: true, opacity: 0.7 }));
         scene.add(stars);
+
+        // ========== TEKSTURALAR GENERATORI (PREMIUM CANVASES) ==========
         
-        // Quyosh
-        const sunGeo = new THREE.SphereGeometry(1.6, 128, 128);
-        const sunMat = new THREE.MeshStandardMaterial({ color: 0xffaa55, emissive: 0xff4422, emissiveIntensity: 0.95, metalness: 0.9, roughness: 0.2 });
-        const sunMesh = new THREE.Mesh(sunGeo, sunMat);
-        scene.add(sunMesh);
-        
-        const sunGlowGeo = new THREE.SphereGeometry(1.85, 64, 64);
-        const sunGlowMat = new THREE.MeshBasicMaterial({ color: 0xff8844, transparent: true, opacity: 0.12, side: THREE.BackSide });
-        const sunGlow = new THREE.Mesh(sunGlowGeo, sunGlowMat);
-        scene.add(sunGlow);
-        
-        // ========== SAYYORALAR TEKSTURALARI ==========
-        function createCraterTexture(baseColor, darkColor, craterCount) {
+        function createSunTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 1024; canvas.height = 1024;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = baseColor;
+            
+            const grad = ctx.createRadialGradient(512, 512, 0, 512, 512, 512);
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(0.15, '#ffe699');
+            grad.addColorStop(0.35, '#ff9900');
+            grad.addColorStop(0.65, '#ff4400');
+            grad.addColorStop(0.85, '#cc1100');
+            grad.addColorStop(1.0, '#2b0000');
+            ctx.fillStyle = grad;
             ctx.fillRect(0, 0, 1024, 1024);
-            for(let i = 0; i < craterCount; i++) {
-                ctx.fillStyle = darkColor;
-                ctx.beginPath(); ctx.arc(Math.random()*1024, Math.random()*1024, 3+Math.random()*15, 0, Math.PI*2);
-                ctx.fill();
-                ctx.fillStyle = `rgba(0,0,0,0.25)`;
-                ctx.beginPath(); ctx.arc(Math.random()*1024, Math.random()*1024, 2+Math.random()*10, 0, Math.PI*2);
+            
+            // Quyosh sirtidagi granulyatsiyalar (alanga dog'lari)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+            for (let i = 0; i < 20000; i++) {
+                ctx.fillRect(Math.random()*1024, Math.random()*1024, 2, 2);
+            }
+            
+            // Quyosh dog'lari (to'q rangli burdalangan zonalar)
+            ctx.fillStyle = 'rgba(150, 20, 0, 0.12)';
+            ctx.filter = 'blur(15px)';
+            for (let i = 0; i < 50; i++) {
+                ctx.beginPath();
+                ctx.arc(Math.random()*1024, Math.random()*1024, 30+Math.random()*50, 0, Math.PI*2);
                 ctx.fill();
             }
+            
             const tex = new THREE.CanvasTexture(canvas);
-            tex.wrapS = THREE.RepeatWrapping;
-            tex.wrapT = THREE.RepeatWrapping;
             return tex;
         }
-        
-        const mercuryTex = createCraterTexture('#9a7a5a', '#6a4a2a', 800);
-        
-        const venusCanvas = document.createElement('canvas');
-        venusCanvas.width = 1024; venusCanvas.height = 1024;
-        let ctx = venusCanvas.getContext('2d');
-        ctx.fillStyle = '#e8b870';
-        ctx.fillRect(0, 0, 1024, 1024);
-        for(let i=0;i<300;i++) {
-            ctx.fillStyle = `rgba(180,120,50,0.35)`;
-            ctx.beginPath(); ctx.ellipse(Math.random()*1024, Math.random()*1024, 10+Math.random()*35, 8+Math.random()*28, Math.random()*Math.PI, 0, Math.PI*2);
+
+        // Quyosh
+        const sunGroup = new THREE.Group();
+        scene.add(sunGroup);
+
+        const sunGeo = new THREE.SphereGeometry(1.6, 64, 64);
+        const sunMat = new THREE.MeshStandardMaterial({
+            map: createSunTexture(),
+            emissive: 0xffaa44,
+            emissiveIntensity: 1.1,
+            metalness: 0.1,
+            roughness: 0.9
+        });
+        const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+        sunMesh.userData = { name: "Quyosh", index: -1, data: { name: "Quyosh", radius: 1.6, moons: [] }, parentGroup: sunGroup };
+        sunGroup.add(sunMesh);
+
+        // Quyosh atrofidagi yorug'lik halqasi (Glow Mesh)
+        const sunGlowGeo = new THREE.SphereGeometry(1.85, 32, 32);
+        const sunGlowMat = new THREE.MeshBasicMaterial({
+            color: 0xff7722,
+            transparent: true,
+            opacity: 0.22,
+            side: THREE.BackSide
+        });
+        const sunGlow = new THREE.Mesh(sunGlowGeo, sunGlowMat);
+        sunGroup.add(sunGlow);
+
+        // Sayyora Teksturalarini generatsiya qilish funktsiyalari
+        function createMercuryTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#8a8580';
+            ctx.fillRect(0, 0, 512, 256);
+            
+            // Qorong'i dog'lar
+            ctx.fillStyle = 'rgba(60, 57, 54, 0.35)';
+            ctx.filter = 'blur(10px)';
+            for (let i = 0; i < 15; i++) {
+                ctx.beginPath();
+                ctx.ellipse(Math.random()*512, Math.random()*256, 30+Math.random()*50, 20+Math.random()*30, 0, 0, Math.PI*2);
+                ctx.fill();
+            }
+            // Kraterlar chizish
+            ctx.filter = 'none';
+            for (let i = 0; i < 300; i++) {
+                const x = Math.random()*512; const y = Math.random()*256;
+                const r = 1 + Math.random()*5;
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                ctx.beginPath(); ctx.arc(x+0.5, y+0.5, r-0.5, 0, Math.PI*2); ctx.fill();
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createVenusTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#e5b87c';
+            ctx.fillRect(0, 0, 512, 256);
+            
+            // Kislotali bulutli atmosfera oqimlari (swirling lines)
+            ctx.filter = 'blur(12px)';
+            for (let i = 0; i < 20; i++) {
+                ctx.fillStyle = `rgba(180, 130, 60, ${0.15 + Math.random()*0.2})`;
+                ctx.beginPath();
+                const y = Math.random()*256;
+                ctx.ellipse(Math.random()*512, y, 100+Math.random()*150, 10+Math.random()*25, 0.05, 0, Math.PI*2);
+                ctx.fill();
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createEarthTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            // Okean foni (Moviy gradient)
+            const oceanGrad = ctx.createLinearGradient(0, 0, 0, 512);
+            oceanGrad.addColorStop(0, '#0f2b5c');
+            oceanGrad.addColorStop(0.5, '#163d7e');
+            oceanGrad.addColorStop(1, '#0f2b5c');
+            ctx.fillStyle = oceanGrad;
+            ctx.fillRect(0, 0, 1024, 512);
+            
+            // Materiklar chizish (Yashil-jigarrang)
+            ctx.fillStyle = '#2b783f';
+            
+            function drawLand(points) {
+                ctx.beginPath();
+                ctx.moveTo(points[0][0], points[0][1]);
+                for (let i = 1; i < points.length; i++) {
+                    const xc = (points[i-1][0] + points[i][0]) / 2 + (Math.random() - 0.5) * 6;
+                    const yc = (points[i-1][1] + points[i][1]) / 2 + (Math.random() - 0.5) * 6;
+                    ctx.quadraticCurveTo(points[i-1][0], points[i-1][1], xc, yc);
+                }
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            // Amerika materiklari
+            drawLand([
+                [160, 90], [210, 80], [290, 120], [310, 190], [240, 230], [260, 270],
+                [290, 290], [330, 330], [310, 420], [260, 460], [230, 410], [250, 330],
+                [210, 300], [170, 250], [150, 180], [130, 130]
+            ]);
+            
+            // Yevroosiyo va Afrika
+            drawLand([
+                [440, 90], [590, 70], [820, 80], [920, 120], [940, 190], [860, 240],
+                [760, 210], [670, 290], [590, 250], [610, 330], [630, 430], [580, 460],
+                [540, 370], [490, 310], [420, 270], [390, 180], [410, 110]
+            ]);
+            
+            // Avstraliya
+            drawLand([
+                [770, 320], [840, 310], [880, 340], [860, 400], [790, 410], [760, 360]
+            ]);
+            
+            // Sahro/Cho'llar (Sariq-jigarrang dog'lar)
+            ctx.fillStyle = '#bfa56a';
+            ctx.beginPath();
+            ctx.ellipse(540, 190, 70, 35, 0.2, 0, Math.PI*2);
+            ctx.ellipse(660, 150, 80, 25, -0.1, 0, Math.PI*2);
             ctx.fill();
-        }
-        const venusTex = new THREE.CanvasTexture(venusCanvas);
-        
-        const earthCanvas = document.createElement('canvas');
-        earthCanvas.width = 1024; earthCanvas.height = 1024;
-        ctx = earthCanvas.getContext('2d');
-        ctx.fillStyle = '#2a6f8f';
-        ctx.fillRect(0, 0, 1024, 1024);
-        ctx.fillStyle = '#5aae7e';
-        ctx.beginPath(); ctx.ellipse(250, 400, 100, 85, 0, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(700, 420, 130, 100, 0.1, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(850, 280, 90, 70, -0.2, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(550, 650, 80, 65, 0.15, 0, Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(400, 180, 70, 55, -0.1, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = `rgba(255,255,255,0.3)`;
-        for(let i=0;i<250;i++) {
-            ctx.beginPath(); ctx.arc(Math.random()*1024, Math.random()*1024, 5+Math.random()*20, 0, Math.PI*2);
+
+            // Muzliklar (Oq shimoliy va janubiy qutblar)
+            ctx.fillStyle = '#f8fafd';
+            // Janubiy qutb
+            ctx.fillRect(0, 470, 1024, 42);
+            // Shimoliy qutb
+            ctx.beginPath();
+            ctx.ellipse(512, 0, 512, 45, 0, 0, Math.PI*2);
             ctx.fill();
+
+            const tex = new THREE.CanvasTexture(canvas);
+            return tex;
         }
-        const earthTex = new THREE.CanvasTexture(earthCanvas);
-        
-        const marsTex = createCraterTexture('#c06a3a', '#8a3a1a', 700);
-        
-        const jupiterCanvas = document.createElement('canvas');
-        jupiterCanvas.width = 1024; jupiterCanvas.height = 1024;
-        ctx = jupiterCanvas.getContext('2d');
-        ctx.fillStyle = '#c8a070';
-        ctx.fillRect(0, 0, 1024, 1024);
-        for(let i=0;i<45;i++) {
-            const y = (i/45)*1024;
-            ctx.fillStyle = `rgba(160,100,60,0.55)`;
-            ctx.fillRect(0, y, 1024, 18);
+
+        // Alohida aylanuvchi Yer buluti teksturasi
+        function createCloudTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 1024, 512);
+            
+            // Mayda, shaffof, yumshoq oq bulut tolalarini chizish
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.filter = 'blur(10px)';
+            
+            for (let i = 0; i < 90; i++) {
+                const cx = Math.random() * 1024;
+                const cy = 60 + Math.random() * 392;
+                const rx = 15 + Math.random() * 60;
+                const ry = 6 + Math.random() * 20;
+                
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, rx, ry, (Math.random() - 0.5) * 0.2, 0, Math.PI*2);
+                ctx.fill();
+            }
+            
+            const tex = new THREE.CanvasTexture(canvas);
+            return tex;
         }
-        for(let i=0;i<25;i++) {
-            const y = (i/25)*1024;
-            ctx.fillStyle = `rgba(100,60,35,0.5)`;
-            ctx.fillRect(0, y, 1024, 25);
+
+        function createMarsTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#bd5e38'; // Mars qizil tuprog'i
+            ctx.fillRect(0, 0, 512, 256);
+            
+            // To'q vulqonli tuproq dog'lari
+            ctx.fillStyle = 'rgba(100, 42, 20, 0.4)';
+            ctx.filter = 'blur(12px)';
+            for (let i = 0; i < 12; i++) {
+                ctx.beginPath();
+                ctx.ellipse(Math.random()*512, Math.random()*256, 40+Math.random()*70, 20+Math.random()*45, 0.1, 0, Math.PI*2);
+                ctx.fill();
+            }
+            
+            // Oq muzlagan qutb qopqoqlari
+            ctx.filter = 'none';
+            ctx.fillStyle = '#f6faff';
+            // Shimoliy qutb
+            ctx.beginPath();
+            ctx.ellipse(256, 0, 60, 12, 0, 0, Math.PI*2);
+            ctx.fill();
+            // Janubiy qutb
+            ctx.beginPath();
+            ctx.ellipse(256, 256, 40, 10, 0, 0, Math.PI*2);
+            ctx.fill();
+
+            return new THREE.CanvasTexture(canvas);
         }
-        ctx.fillStyle = '#aa5533';
-        ctx.beginPath(); ctx.ellipse(650, 550, 70, 45, 0, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#cc6644';
-        ctx.beginPath(); ctx.ellipse(640, 540, 45, 30, 0, 0, Math.PI*2); ctx.fill();
-        const jupiterTex = new THREE.CanvasTexture(jupiterCanvas);
-        jupiterTex.wrapS = THREE.RepeatWrapping;
-        jupiterTex.repeat.set(2.5, 1);
-        
-        const saturnCanvas = document.createElement('canvas');
-        saturnCanvas.width = 1024; saturnCanvas.height = 1024;
-        ctx = saturnCanvas.getContext('2d');
-        ctx.fillStyle = '#e0c8a0';
-        ctx.fillRect(0, 0, 1024, 1024);
-        for(let i=0;i<35;i++) {
-            const y = (i/35)*1024;
-            ctx.fillStyle = `rgba(180,140,90,0.5)`;
-            ctx.fillRect(0, y, 1024, 22);
+
+        function createJupiterTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#cdab7e';
+            ctx.fillRect(0, 0, 1024, 512);
+            
+            // Turli rangdagi parallel bulut oqimlari (chiziqlar)
+            for (let y = 0; y < 512; y += 12) {
+                const colR = 190 + Math.sin(y*0.05)*35 + (Math.random()-0.5)*10;
+                const colG = 150 + Math.sin(y*0.03)*30;
+                const colB = 110 + Math.cos(y*0.04)*25;
+                ctx.fillStyle = `rgba(${colR}, ${colG}, ${colB}, 0.85)`;
+                
+                // To'lqinsimon chiziq
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                for (let x = 0; x <= 1024; x += 32) {
+                    const waveY = y + Math.sin(x*0.02 + y*0.1)*5;
+                    ctx.lineTo(x, waveY);
+                }
+                ctx.lineTo(1024, y + 25);
+                ctx.lineTo(0, y + 25);
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            // Katta Qizil Dog' (Great Red Spot)
+            ctx.filter = 'blur(6px)';
+            ctx.fillStyle = '#b34426';
+            ctx.beginPath();
+            ctx.ellipse(640, 350, 50, 30, -0.05, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#df7b5a';
+            ctx.beginPath();
+            ctx.ellipse(635, 348, 30, 16, -0.05, 0, Math.PI*2);
+            ctx.fill();
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping;
+            return tex;
         }
-        const saturnTex = new THREE.CanvasTexture(saturnCanvas);
-        saturnTex.wrapS = THREE.RepeatWrapping;
-        saturnTex.repeat.set(1.5, 1);
-        
-        const uranCanvas = document.createElement('canvas');
-        uranCanvas.width = 1024; uranCanvas.height = 1024;
-        ctx = uranCanvas.getContext('2d');
-        ctx.fillStyle = '#a8d0e0';
-        ctx.fillRect(0, 0, 1024, 1024);
-        for(let i=0;i<25;i++) {
-            const y = (i/25)*1024;
-            ctx.fillStyle = `rgba(100,160,180,0.35)`;
-            ctx.fillRect(0, y, 1024, 20);
+
+        function createSaturnTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#dfce9f';
+            ctx.fillRect(0, 0, 1024, 512);
+            
+            // Silliq xira chiziqlar
+            for (let y = 0; y < 512; y += 15) {
+                const colR = 210 + Math.sin(y*0.01)*20;
+                const colG = 195 + Math.sin(y*0.01)*15;
+                const colB = 155 + Math.cos(y*0.015)*15;
+                ctx.fillStyle = `rgba(${colR}, ${colG}, ${colB}, 0.7)`;
+                ctx.fillRect(0, y, 1024, 18);
+            }
+            return new THREE.CanvasTexture(canvas);
         }
-        const uranTex = new THREE.CanvasTexture(uranCanvas);
-        
-        const neptunTex = createCraterTexture('#3a6ea5', '#1a4e85', 400);
-        
+
+        // Saturn halqasining radial teksturasi
+        function createSaturnRingsTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 16; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            // Concentric details
+            // V coordinate maps radially. 0 is inner edge, 1 is outer edge
+            for (let y = 0; y < 512; y++) {
+                const v = y / 512;
+                let color, alpha;
+                
+                if (v < 0.12) {
+                    // Ichki C halqa: shaffof va to'q rangli
+                    color = '90, 80, 70';
+                    alpha = 0.18 * (v / 0.12);
+                } else if (v < 0.62) {
+                    // Asosiy yorqin B halqa: oq-sariq
+                    color = '220, 202, 170';
+                    const detail = 0.8 + Math.sin(v * 180) * 0.15;
+                    alpha = 0.88 * detail;
+                } else if (v < 0.67) {
+                    // Kassini bo'shlig'i ( Cassini division ) - shaffof qora
+                    color = '25, 20, 15';
+                    alpha = 0.04;
+                } else if (v < 0.92) {
+                    // A halqa: o'rtacha yorqin
+                    color = '185, 168, 140';
+                    const detail = 0.85 + Math.cos(v * 130) * 0.1;
+                    alpha = 0.62 * detail;
+                } else {
+                    // Tashqi chetki xira F halqa
+                    color = '140, 125, 105';
+                    alpha = 0.22 * (1 - (v - 0.92)/0.08);
+                }
+                
+                ctx.fillStyle = `rgba(${color}, ${alpha})`;
+                ctx.fillRect(0, y, 16, 1);
+            }
+            
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.ClampToEdgeWrapping;
+            tex.wrapT = THREE.ClampToEdgeWrapping;
+            return tex;
+        }
+
+        function createUranusTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#b7e3e9'; // Och havorang gas
+            ctx.fillRect(0, 0, 512, 256);
+            
+            // Xira ko'k-yashil chiziqlar
+            for (let y = 0; y < 256; y += 20) {
+                ctx.fillStyle = `rgba(160, 210, 220, 0.4)`;
+                ctx.fillRect(0, y, 512, 10);
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createNeptuneTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#274e9a'; // To'q ko'k neptun rangi
+            ctx.fillRect(0, 0, 512, 256);
+            
+            // Bulut chiziqlari va Katta Qorong'i Dog' (Great Dark Spot)
+            ctx.filter = 'blur(10px)';
+            ctx.fillStyle = 'rgba(12, 30, 80, 0.45)';
+            ctx.beginPath();
+            ctx.ellipse(320, 160, 45, 25, -0.05, 0, Math.PI*2);
+            ctx.fill();
+
+            // Yengil oq yupqa shamol bulutlari
+            ctx.filter = 'blur(4px)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+            for (let i = 0; i < 4; i++) {
+                ctx.beginPath();
+                ctx.ellipse(Math.random()*512, Math.random()*256, 100, 4, 0.02, 0, Math.PI*2);
+                ctx.fill();
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // ========== SAYYORALAR METADATA JADVALI ==========
         const planetsData = [
-            { name: "Merkuriy", radius: 0.22, distance: 2.8, period: 88, tex: mercuryTex, color: 0x9a7a5a, roughness: 0.7, metalness: 0.3, moons: [] },
-            { name: "Venera",   radius: 0.27, distance: 3.8, period: 225, tex: venusTex, color: 0xe8b870, roughness: 0.6, metalness: 0.1, moons: [] },
-            { name: "Yer",      radius: 0.32, distance: 4.9, period: 365, tex: earthTex, color: 0x4da6ff, roughness: 0.5, metalness: 0.1, moons: [{ name: "🌙 Oy", radius: 0.08, distance: 0.7, color: 0xccccaa, speed: 0.05 }] },
-            { name: "Mars",     radius: 0.27, distance: 6.0, period: 687, tex: marsTex, color: 0xc06a3a, roughness: 0.7, metalness: 0.05, moons: [{ name: "Fobos", radius: 0.05, distance: 0.5, color: 0xaa9988, speed: 0.08 }, { name: "Deymos", radius: 0.04, distance: 0.8, color: 0xaa8866, speed: 0.06 }] },
-            { name: "Yupiter",  radius: 0.60, distance: 8.2, period: 4333, tex: jupiterTex, color: 0xc8a070, roughness: 0.55, metalness: 0.2, moons: [{ name: "Io", radius: 0.09, distance: 1.0, color: 0xffaa66, speed: 0.04 }, { name: "Europa", radius: 0.08, distance: 1.4, color: 0xaaddff, speed: 0.035 }, { name: "Ganymede", radius: 0.1, distance: 1.8, color: 0xccaa88, speed: 0.03 }] },
-            { name: "Saturn",   radius: 0.53, distance: 10.0, period: 10759, tex: saturnTex, color: 0xe0c8a0, roughness: 0.5, metalness: 0.25, moons: [{ name: "Titan", radius: 0.1, distance: 1.2, color: 0xddbb99, speed: 0.028 }, { name: "Rhea", radius: 0.06, distance: 0.85, color: 0xccaa88, speed: 0.035 }] },
-            { name: "Uran",     radius: 0.42, distance: 12.1, period: 30687, tex: uranTex, color: 0xa8d0e0, roughness: 0.48, metalness: 0.15, moons: [{ name: "Titania", radius: 0.07, distance: 0.9, color: 0xaaccdd, speed: 0.03 }] },
-            { name: "Neptun",   radius: 0.41, distance: 14.0, period: 60190, tex: neptunTex, color: 0x3a6ea5, roughness: 0.5, metalness: 0.18, moons: [{ name: "Triton", radius: 0.08, distance: 1.0, color: 0x88aacc, speed: 0.03 }] }
+            { name: "Merkuriy", radius: 0.22, distance: 2.9, period: 88, tilt: 0.03, color: 0x8a8580, roughness: 0.7, metalness: 0.2, tex: createMercuryTexture(), moons: [] },
+            { name: "Venera",   radius: 0.27, distance: 3.9, period: 225, tilt: 177.3, color: 0xe5b87c, roughness: 0.8, metalness: 0.1, tex: createVenusTexture(), moons: [] },
+            { name: "Yer",      radius: 0.32, distance: 5.1, period: 365, tilt: 23.44, color: 0xffffff, roughness: 0.5, metalness: 0.1, tex: createEarthTexture(), moons: [{ name: "🌙 Oy", radius: 0.075, distance: 0.65, color: 0xdcdde1, speed: 0.045 }] },
+            { name: "Mars",     radius: 0.27, distance: 6.2, period: 687, tilt: 25.19, color: 0xbd5e38, roughness: 0.65, metalness: 0.1, tex: createMarsTexture(), moons: [{ name: "Fobos", radius: 0.04, distance: 0.48, color: 0xa8a59e, speed: 0.07 }, { name: "Deymos", radius: 0.03, distance: 0.75, color: 0x938f88, speed: 0.05 }] },
+            { name: "Yupiter",  radius: 0.58, distance: 8.4, period: 4333, tilt: 3.13, color: 0xcdab7e, roughness: 0.5, metalness: 0.15, tex: createJupiterTexture(), moons: [{ name: "Io", radius: 0.075, distance: 0.95, color: 0xfbc531, speed: 0.035 }, { name: "Europa", radius: 0.07, distance: 1.35, color: 0x4cd137, speed: 0.03 }, { name: "Ganimed", radius: 0.09, distance: 1.75, color: 0x487eb0, speed: 0.024 }] },
+            { name: "Saturn",   radius: 0.50, distance: 10.3, period: 10759, tilt: 26.73, color: 0xdfce9f, roughness: 0.5, metalness: 0.2, tex: createSaturnTexture(), moons: [{ name: "Titan", radius: 0.095, distance: 1.25, color: 0xe1b12c, speed: 0.026 }, { name: "Reya", radius: 0.055, distance: 0.88, color: 0x95afc0, speed: 0.033 }] },
+            { name: "Uran",     radius: 0.39, distance: 12.4, period: 30687, tilt: 97.77, color: 0xb7e3e9, roughness: 0.45, metalness: 0.1, tex: createUranusTexture(), moons: [{ name: "Titaniya", radius: 0.065, distance: 0.85, color: 0xc8d6e5, speed: 0.028 }] },
+            { name: "Neptun",   radius: 0.38, distance: 14.2, period: 60190, tilt: 28.32, color: 0x274e9a, roughness: 0.5, metalness: 0.1, tex: createNeptuneTexture(), moons: [{ name: "Triton", radius: 0.075, distance: 0.95, color: 0x70a1ff, speed: 0.025 }] }
         ];
-        
-        const planets = [];
+
+        // RingGeometry UV to Polar Helper (Cassini bo'shlig'i chiroyli chiqishi uchun)
+        function makeRingUVs(geometry, innerRadius, outerRadius) {
+            const pos = geometry.attributes.position;
+            const uvs = geometry.attributes.uv;
+            for (let i = 0; i < pos.count; i++) {
+                const x = pos.getX(i);
+                const y = pos.getY(i);
+                const angle = Math.atan2(y, x);
+                const dist = Math.sqrt(x*x + y*y);
+                
+                const u = (angle + Math.PI) / (2 * Math.PI);
+                const v = (dist - innerRadius) / (outerRadius - innerRadius);
+                uvs.setXY(i, u, v);
+            }
+            uvs.needsUpdate = true;
+        }
+
+        // Massivlar
+        const planetGroups = [];
+        const clickableObjects = [sunMesh]; // Sun is clickable
         const orbits = [];
         const allMoons = [];
-        
+
+        // Sayyoralarni sahnalashtirish
         planetsData.forEach((data, idx) => {
-            const geometry = new THREE.SphereGeometry(data.radius, 128, 128);
-            const material = new THREE.MeshStandardMaterial({
-                map: data.tex,
-                color: data.color,
-                roughness: data.roughness,
-                metalness: data.metalness
-            });
-            const planet = new THREE.Mesh(geometry, material);
-            planet.userData = {
-                name: data.name, distance: data.distance, period: data.period,
-                moons: data.moons, angle: Math.random() * Math.PI * 2, radius: data.radius
-            };
-            scene.add(planet);
-            planets.push(planet);
+            // Planet Guruhi (Orbit atrofida harakatlanadi)
+            const group = new THREE.Group();
+            scene.add(group);
             
+            // Orbita Chizig'i (Halqa)
             const points = [];
-            for (let i = 0; i <= 180; i++) {
-                const ang = (i / 180) * Math.PI * 2;
+            for (let i = 0; i <= 140; i++) {
+                const ang = (i / 140) * Math.PI * 2;
                 points.push(new THREE.Vector3(Math.cos(ang) * data.distance, 0, Math.sin(ang) * data.distance));
             }
             const orbitGeo = new THREE.BufferGeometry().setFromPoints(points);
-            const orbitMat = new THREE.LineBasicMaterial({ color: 0x88aaff, transparent: true, opacity: 0.25 });
+            const orbitMat = new THREE.LineBasicMaterial({ color: 0x00d2ff, transparent: true, opacity: 0.14 });
             const orbitLine = new THREE.LineLoop(orbitGeo, orbitMat);
             scene.add(orbitLine);
             orbits.push(orbitLine);
             
-            data.moons.forEach((moonData) => {
-                const moonGeo = new THREE.SphereGeometry(moonData.radius, 64, 64);
-                const moonMat = new THREE.MeshStandardMaterial({ color: moonData.color, roughness: 0.7 });
-                const moon = new THREE.Mesh(moonGeo, moonMat);
-                scene.add(moon);
-                allMoons.push({ mesh: moon, parentPlanet: planet, data: moonData, angle: Math.random() * Math.PI * 2 });
-                moon.visible = false;
+            // Sayyora Shari (Mesh)
+            const planetGeo = new THREE.SphereGeometry(data.radius, 64, 64);
+            const planetMat = new THREE.MeshStandardMaterial({
+                map: data.tex,
+                roughness: data.roughness,
+                metalness: data.metalness
             });
+            const planetMesh = new THREE.Mesh(planetGeo, planetMat);
+            
+            // E'lon qilish va tilt
+            planetMesh.userData = { name: data.name, index: idx, data: data, parentGroup: group };
+            planetMesh.rotation.z = THREE.MathUtils.degToRad(data.tilt);
+            group.add(planetMesh);
+            clickableObjects.push(planetMesh);
+            
+            // Er Bulutlari
+            if (data.name === "Yer") {
+                const cloudGeo = new THREE.SphereGeometry(data.radius + 0.01, 64, 64);
+                const cloudMat = new THREE.MeshStandardMaterial({
+                    map: createCloudTexture(),
+                    transparent: true,
+                    opacity: 0.42,
+                    blending: THREE.NormalBlending
+                });
+                const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
+                cloudMesh.rotation.z = THREE.MathUtils.degToRad(data.tilt);
+                group.add(cloudMesh);
+                group.userData.cloudMesh = cloudMesh;
+            }
+            
+            // Saturn halqalari (Yupqa RingGeometry)
+            if (data.name === "Saturn") {
+                const innerRad = data.radius * 1.35;
+                const outerRad = data.radius * 2.75;
+                const ringGeo = new THREE.RingGeometry(innerRad, outerRad, 128);
+                makeRingUVs(ringGeo, innerRad, outerRad);
+                
+                const ringMat = new THREE.MeshStandardMaterial({
+                    map: createSaturnRingsTexture(),
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.9,
+                    roughness: 0.6,
+                    metalness: 0.15
+                });
+                const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                // Tilting Saturn's Ring to match planetary axis
+                ringMesh.rotation.x = Math.PI / 2;
+                ringMesh.rotation.y = THREE.MathUtils.degToRad(data.tilt);
+                group.add(ringMesh);
+                group.userData.ringMesh = ringMesh;
+            }
+            
+            // Uran halqalari (Vertikal juda yupqa chiziq)
+            if (data.name === "Uran") {
+                const innerRad = data.radius * 1.5;
+                const outerRad = data.radius * 1.54;
+                const ringGeo = new THREE.RingGeometry(innerRad, outerRad, 64);
+                const ringMat = new THREE.MeshBasicMaterial({ color: 0x9cd0db, side: THREE.DoubleSide, transparent: true, opacity: 0.25 });
+                const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                ringMesh.rotation.x = Math.PI / 2;
+                ringMesh.rotation.y = THREE.MathUtils.degToRad(data.tilt);
+                group.add(ringMesh);
+            }
+            
+            // Sayyora Yo'ldoshlari
+            data.moons.forEach(moonData => {
+                const moonGeo = new THREE.SphereGeometry(moonData.radius, 32, 32);
+                const moonMat = new THREE.MeshStandardMaterial({ color: moonData.color, roughness: 0.8 });
+                const moonMesh = new THREE.Mesh(moonGeo, moonMat);
+                group.add(moonMesh);
+                
+                // Yo'ldosh orbitalari (Kichik aylanalar)
+                const mPoints = [];
+                for (let i = 0; i <= 64; i++) {
+                    const ang = (i / 64) * Math.PI * 2;
+                    mPoints.push(new THREE.Vector3(Math.cos(ang) * moonData.distance, 0, Math.sin(ang) * moonData.distance));
+                }
+                const mOrbitGeo = new THREE.BufferGeometry().setFromPoints(mPoints);
+                const mOrbitMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.08 });
+                const mOrbitLine = new THREE.LineLoop(mOrbitGeo, mOrbitMat);
+                group.add(mOrbitLine);
+                
+                allMoons.push({
+                    mesh: moonMesh,
+                    orbitLine: mOrbitLine,
+                    parentPlanetGroup: group,
+                    parentPlanetMesh: planetMesh,
+                    data: moonData,
+                    angle: Math.random() * Math.PI * 2
+                });
+                
+                // Boshida yo'ldoshlar yopiq (Faqat planet focused bolganda faollashadi)
+                moonMesh.visible = false;
+                mOrbitLine.visible = false;
+            });
+
+            planetGroups.push(group);
         });
-        
-        const saturnPlanet = planets[5];
-        const mainRingGeo = new THREE.TorusGeometry(0.94, 0.1, 128, 256);
-        const mainRingMat = new THREE.MeshStandardMaterial({ color: 0xc8b080, emissive: 0x331100, metalness: 0.4, roughness: 0.5, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-        const mainRing = new THREE.Mesh(mainRingGeo, mainRingMat);
-        mainRing.rotation.x = Math.PI / 2.2;
-        scene.add(mainRing);
-        
-        const outerRingGeo = new THREE.TorusGeometry(1.1, 0.07, 96, 256);
-        const outerRingMat = new THREE.MeshStandardMaterial({ color: 0xaa9060, metalness: 0.3, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
-        const outerRing = new THREE.Mesh(outerRingGeo, outerRingMat);
-        outerRing.rotation.x = Math.PI / 2.2;
-        scene.add(outerRing);
-        
-        const asteroidCount = 1200;
+
+        // Asteroid Kamari (Mars va Yupiter oralig'ida)
+        const asteroidCount = 1400;
         const astPos = new Float32Array(asteroidCount * 3);
+        const astRadius = [];
+        const astAngle = [];
         for (let i = 0; i < asteroidCount; i++) {
-            const r = 7.2 + Math.random() * 2.8;
+            const r = 6.9 + Math.random() * 1.3;
             const a = Math.random() * Math.PI * 2;
+            astRadius.push(r);
+            astAngle.push(a);
             astPos[i*3] = Math.cos(a) * r;
-            astPos[i*3+1] = (Math.random() - 0.5) * 0.9;
+            astPos[i*3+1] = (Math.random() - 0.5) * 0.3;
             astPos[i*3+2] = Math.sin(a) * r;
         }
         const astGeo = new THREE.BufferGeometry();
         astGeo.setAttribute('position', new THREE.BufferAttribute(astPos, 3));
-        const astField = new THREE.Points(astGeo, new THREE.PointsMaterial({ color: 0xaa8866, size: 0.045 }));
+        const astField = new THREE.Points(astGeo, new THREE.PointsMaterial({ color: 0xbf9b7a, size: 0.045, transparent: true, opacity: 0.75 }));
         scene.add(astField);
-        
-        // ========== VAQT TIZIMI ==========
+
+        // ========== SIMULYATSIYA VA VAQT TIZIMI ==========
         let simulationDays = 0;
         let lastUpdate = performance.now();
-        const TIME_SCALE = 4.0;
-        const refDate = new Date(Date.UTC(2026, 4, 15, 12, 0, 0));
         
-        let currentView = "solar";
-        let focusedPlanet = null;
+        let isSimRunning = true;
+        let simSpeed = 1.0;
+        const TIME_SCALE = 3.5; // Asosiy kun ko'paytiruvchisi (1 sekundda 3.5 kun o'tishi)
+        const refDate = new Date(Date.UTC(2026, 4, 15, 12, 0, 0)); // 2026-05-15
+        
+        let currentView = "solar"; // "solar" yoki "planet"
+        let focusedPlanetGroup = null;
         let isAnimating = false;
         let savedOffset = null;
-        
+
         function getAngle(period, days) {
             return ((days / period) * Math.PI * 2) % (Math.PI * 2);
         }
-        
+
+        // Barcha harakatlarni yangilash loopi
         function updatePlanets(days) {
-            planets.forEach((p, i) => {
-                const d = planetsData[i];
-                const ang = getAngle(d.period, days);
-                p.userData.angle = ang;
-                p.position.set(Math.cos(ang) * d.distance, 0, Math.sin(ang) * d.distance);
-                p.rotation.y += 0.008;
-            });
-            
-            allMoons.forEach(m => {
-                if (m.mesh.visible && m.parentPlanet) {
-                    m.angle += m.data.speed * 0.6;
-                    const x = Math.cos(m.angle) * m.data.distance;
-                    const z = Math.sin(m.angle) * m.data.distance;
-                    m.mesh.position.set(
-                        m.parentPlanet.position.x + x, 
-                        Math.sin(m.angle * 1.5) * 0.07, 
-                        m.parentPlanet.position.z + z
-                    );
-                    m.mesh.rotation.y += 0.02;
+            // Sayyoralarni orbitasida aylantirish
+            planetGroups.forEach((group, i) => {
+                const data = planetsData[i];
+                const ang = getAngle(data.period, days);
+                group.position.set(Math.cos(ang) * data.distance, 0, Math.sin(ang) * data.distance);
+                
+                // O'z o'qida aylanishi
+                const planetMesh = group.children[0];
+                if (data.name === "Venera" || data.name === "Uran") {
+                    // Teskari (Retrograd) aylanish
+                    planetMesh.rotation.y -= 0.005;
+                } else {
+                    planetMesh.rotation.y += 0.008;
+                }
+                
+                // Bulutlarni aylantirish
+                if (data.name === "Yer" && group.userData.cloudMesh) {
+                    group.userData.cloudMesh.rotation.y += 0.0095;
+                }
+                
+                // Saturn halqasini aylantirish
+                if (data.name === "Saturn" && group.userData.ringMesh) {
+                    group.userData.ringMesh.rotation.z -= 0.0004;
                 }
             });
-            
-            if (mainRing && saturnPlanet) {
-                mainRing.position.copy(saturnPlanet.position);
-                outerRing.position.copy(saturnPlanet.position);
-                mainRing.rotation.z += 0.0025;
-                outerRing.rotation.z -= 0.002;
+
+            // Yo'ldoshlarni sayyora atrofida aylantirish
+            allMoons.forEach(m => {
+                if (m.mesh.visible) {
+                    m.angle += m.data.speed * (isSimRunning ? simSpeed : 0.2) * 0.7;
+                    const mx = Math.cos(m.angle) * m.data.distance;
+                    const mz = Math.sin(m.angle) * m.data.distance;
+                    m.mesh.position.set(mx, 0, mz);
+                }
+            });
+
+            // Kamera silliq ta'qib qilishi (focused sayyorani)
+            if (currentView === "planet" && focusedPlanetGroup && !isAnimating && savedOffset) {
+                const targetCam = focusedPlanetGroup.position.clone().add(savedOffset);
+                const targetLook = focusedPlanetGroup.position.clone();
+                camera.position.lerp(targetCam, 0.08);
+                controls.target.lerp(targetLook, 0.08);
             }
-            
-            if (currentView === "planet" && focusedPlanet && !isAnimating && savedOffset) {
-                const targetPos = focusedPlanet.position.clone().add(savedOffset);
-                const targetLook = focusedPlanet.position.clone();
-                camera.position.lerp(targetPos, 0.12);
-                controls.target.lerp(targetLook, 0.12);
-                controls.update();
-            }
-            
+
+            // Simulyatsiya vaqtini hisoblash va ko'rsatish
             const realDate = new Date(refDate.getTime() + days * 86400000);
-            document.getElementById('currentTimeDisplay').innerHTML = realDate.toISOString().slice(0, 16).replace('T', ' ');
+            document.getElementById('currentTimeBadge').innerText = realDate.toISOString().slice(0, 16).replace('T', ' ');
             
-            if (currentView === "planet" && focusedPlanet) {
-                const idx = planets.findIndex(p => p === focusedPlanet);
-                if (idx !== -1) {
-                    const pd = planetsData[idx];
+            // Real vaqtda burchaklarni yangilab turish
+            if (currentView === "planet" && focusedPlanetGroup) {
+                const index = planetGroups.findIndex(g => g === focusedPlanetGroup);
+                if (index !== -1) {
+                    const pd = planetsData[index];
                     const ang = getAngle(pd.period, days);
-                    document.getElementById('selected-planet-name').innerHTML = pd.name;
-                    document.getElementById('angle-deg').innerHTML = (ang * 180 / Math.PI).toFixed(1) + "°";
-                    document.getElementById('distance-abs').innerHTML = pd.distance + " a.b.";
-                    document.getElementById('moon-count').innerHTML = pd.moons.length;
+                    document.getElementById('statAngle').innerText = (ang * 180 / Math.PI).toFixed(1) + "°";
                 }
             } else {
+                // Solar viewda Yerni standart qilib turamiz
                 const earth = planetsData[2];
                 const ang = getAngle(earth.period, days);
-                document.getElementById('selected-planet-name').innerHTML = "Yer";
-                document.getElementById('angle-deg').innerHTML = (ang * 180 / Math.PI).toFixed(1) + "°";
-                document.getElementById('distance-abs').innerHTML = earth.distance + " a.b.";
-                document.getElementById('moon-count').innerHTML = earth.moons.length;
+                document.getElementById('statAngle').innerText = (ang * 180 / Math.PI).toFixed(1) + "°";
             }
         }
-        
+
+        // Vaqtga sakrash
         function jumpToTime(dtStr) {
             const target = new Date(dtStr);
             if (!isNaN(target)) {
@@ -608,80 +1603,116 @@
                 updatePlanets(simulationDays);
             }
         }
-        
-        function focusOnPlanet(planet, pData) {
-            if (currentView === "planet" && focusedPlanet === planet) return;
+
+        // ========== SAYYORAGA YAQINLASHISH (FOCUS) ==========
+        function focusOnPlanet(planetMesh) {
+            const group = planetMesh.userData.parentGroup;
+            const pData = planetMesh.userData.data;
+
+            if (currentView === "planet" && focusedPlanetGroup === group) return;
             if (isAnimating) return;
-            
+
             currentView = "planet";
-            focusedPlanet = planet;
-            
+            focusedPlanetGroup = group;
+
+            // Yo'ldoshlarni faqat shu sayyora uchun yoqish
+            const showMoons = document.getElementById('moonsToggle').checked;
             allMoons.forEach(m => {
-                m.mesh.visible = (m.parentPlanet === planet);
+                const belongs = (m.parentPlanetGroup === group);
+                m.mesh.visible = belongs && showMoons;
+                m.orbitLine.visible = belongs && showMoons && document.getElementById('orbitsToggle').checked;
             });
-            
-            planets.forEach(p => {
-                if (p !== planet) {
-                    p.material.transparent = true;
-                    p.material.opacity = 0.35;
+
+            // Boshqa sayyoralarni shaffof qilish (Vizual tozalik uchun)
+            planetGroups.forEach(g => {
+                const mesh = g.children[0];
+                if (g !== group) {
+                    mesh.material.transparent = true;
+                    mesh.material.opacity = 0.28;
                 } else {
-                    p.material.opacity = 1;
-                    p.material.transparent = false;
+                    mesh.material.transparent = false;
+                    mesh.material.opacity = 1.0;
                 }
             });
+
+            // UI yangilanishlari
+            document.body.classList.add('info-open');
+            document.getElementById('infoCard').classList.add('visible');
+            document.getElementById('returnBtn').classList.add('visible');
             
-            const dist = pData.radius * 5.5;
-            const offset = new THREE.Vector3(dist * 1.4, dist * 0.7, dist * 1.7);
-            savedOffset = null;
-            animateCamera(planet.position.clone().add(offset), planet.position.clone(), () => {
-                savedOffset = camera.position.clone().sub(planet.position);
+            fillInfoCard(pData);
+
+            // Aktiv tugmani belgilash
+            document.querySelectorAll('.planet-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.innerText.includes(pData.name)) btn.classList.add('active');
             });
-            
-            const backBtn = document.getElementById('backBtn');
-            backBtn.style.display = "block";
+
+            // Kamera animatsiyasi
+            const multiplier = pData.name === "Quyosh" ? 3.0 : 5.8;
+            const dist = pData.radius * multiplier;
+            const offset = new THREE.Vector3(dist * 1.4, dist * 0.7, dist * 1.6);
+            savedOffset = null;
+
+            const targetCamPos = group.position.clone().add(offset);
+            const targetLookPos = group.position.clone();
+
+            animateCamera(targetCamPos, targetLookPos, () => {
+                savedOffset = camera.position.clone().sub(group.position);
+            });
         }
-        
+
+        // Quyosh tizimiga qaytish
         function backToSolar() {
             if (currentView === "solar" || isAnimating) return;
-            
+
             currentView = "solar";
             
+            // Yo'ldoshlarni yashirish
             allMoons.forEach(m => {
                 m.mesh.visible = false;
+                m.orbitLine.visible = false;
             });
-            
-            planets.forEach(p => {
-                p.material.opacity = 1;
-                p.material.transparent = false;
+
+            // Shaffoflikni qaytarish
+            planetGroups.forEach(g => {
+                const mesh = g.children[0];
+                mesh.material.transparent = false;
+                mesh.material.opacity = 1.0;
             });
-            
-            animateCamera(new THREE.Vector3(0, 5, 18), new THREE.Vector3(0, 0, 0), () => {
-                focusedPlanet = null;
+
+            // UI
+            document.body.classList.remove('info-open');
+            document.getElementById('infoCard').classList.remove('visible');
+            document.getElementById('returnBtn').classList.remove('visible');
+
+            // Aktiv tugmalarni o'chirish
+            document.querySelectorAll('.planet-btn').forEach(btn => btn.classList.remove('active'));
+
+            animateCamera(new THREE.Vector3(0, 8, 22), new THREE.Vector3(0, 0, 0), () => {
+                focusedPlanetGroup = null;
                 savedOffset = null;
             });
-            
-            const backBtn = document.getElementById('backBtn');
-            backBtn.style.display = "none";
         }
-        
+
+        // Silliq kamera animatsiyasi
         function animateCamera(targetPos, targetLook, onComplete) {
-            if (isAnimating) return;
             isAnimating = true;
             
             const startPos = camera.position.clone();
             const startTarget = controls.target.clone();
             const startTime = performance.now();
-            const duration = 800;
-            
+            const duration = 900; // Silliq o'tish vaqti
+
             function update(now) {
                 const elapsed = now - startTime;
                 const t = Math.min(1, elapsed / duration);
-                const ease = 1 - Math.pow(1 - t, 3);
+                const ease = 1 - Math.pow(1 - t, 3); // Cubic Ease Out
                 
                 camera.position.lerpVectors(startPos, targetPos, ease);
                 controls.target.lerpVectors(startTarget, targetLook, ease);
                 controls.update();
-                
+
                 if (t < 1) {
                     requestAnimationFrame(update);
                 } else {
@@ -689,107 +1720,235 @@
                     if (onComplete) onComplete();
                 }
             }
-            
             requestAnimationFrame(update);
         }
-        
-        setInterval(() => {
-            if (currentView === "planet" && focusedPlanet && !isAnimating) {
-                savedOffset = camera.position.clone().sub(focusedPlanet.position);
+
+        // Ma'lumot panelini ma'lumotlar bilan to'ldirish
+        function fillInfoCard(data) {
+            const info = planetsInfoUz[data.name];
+            if (!info) return;
+
+            document.getElementById('infoName').innerText = data.name;
+            document.getElementById('infoType').innerText = info.type;
+            document.getElementById('infoDesc').innerText = info.desc;
+            document.getElementById('statRadius').innerText = info.radius;
+            document.getElementById('statDistance').innerText = info.distance;
+            document.getElementById('statPeriod').innerText = info.period;
+            document.getElementById('statRotation').innerText = info.rotation;
+            document.getElementById('statTemp').innerText = info.temp;
+            
+            // Yo'ldoshlar ro'yxati
+            const listEl = document.getElementById('moonsList');
+            const sectionEl = document.getElementById('moonsSection');
+            listEl.innerHTML = '';
+            
+            if (info.moons.length > 0) {
+                sectionEl.style.display = 'flex';
+                info.moons.forEach(m => {
+                    const badge = document.createElement('span');
+                    badge.className = 'moon-badge';
+                    badge.innerText = m;
+                    listEl.appendChild(badge);
+                });
+            } else {
+                sectionEl.style.display = 'none';
             }
-        }, 50);
-        
+        }
+
+        // ========== CLICK VS DRAG TO'QNASHUVLARNI TUZATISH ==========
+        let clickStartX = 0;
+        let clickStartY = 0;
+
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            clickStartX = e.clientX;
+            clickStartY = e.clientY;
+        });
+
+        renderer.domElement.addEventListener('mouseup', (e) => {
+            const dx = e.clientX - clickStartX;
+            const dy = e.clientY - clickStartY;
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            
+            // Drag masofasi 6 pikseldan kam bo'lsa - buni oddiy bosish (click) deb qabul qilamiz
+            if (distance < 6) {
+                handleRaycast(e.clientX, e.clientY);
+            }
+        });
+
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                clickStartX = e.touches[0].clientX;
+                clickStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        renderer.domElement.addEventListener('touchend', (e) => {
+            if (e.changedTouches.length === 1) {
+                const dx = e.changedTouches[0].clientX - clickStartX;
+                const dy = e.changedTouches[0].clientY - clickStartY;
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                
+                if (distance < 12) {
+                    handleRaycast(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+                }
+            }
+        }, { passive: true });
+
+        const raycaster = new THREE.Raycaster();
+        const mouseVec = new THREE.Vector2();
+
+        function handleRaycast(clientX, clientY) {
+            if (isAnimating) return;
+
+            mouseVec.x = (clientX / window.innerWidth) * 2 - 1;
+            mouseVec.y = -(clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouseVec, camera);
+            const intersects = raycaster.intersectObjects(clickableObjects);
+
+            if (intersects.length > 0) {
+                const targetObj = intersects[0].object;
+                focusOnPlanet(targetObj);
+            }
+        }
+
+        // ========== DOIMIY HIKOYA LOOP VA RENDER ==========
         let animTime = 0;
         
         function simLoop(now) {
             const delta = Math.min(0.05, (now - lastUpdate) / 1000);
-            if (delta > 0) {
-                simulationDays += delta * TIME_SCALE;
+            if (delta > 0 && isSimRunning) {
+                simulationDays += delta * TIME_SCALE * simSpeed;
                 updatePlanets(simulationDays);
             }
             lastUpdate = now;
         }
-        
+
         function renderLoop() {
             const now = performance.now();
             simLoop(now);
             requestAnimationFrame(renderLoop);
-            animTime += 0.016;
             
-            stars.rotation.y += 0.0001;
-            astField.rotation.y += 0.0006;
+            animTime += 0.012;
+            
+            // Fon animatsiyalari
+            stars.rotation.y += 0.00015;
+            astField.rotation.y += 0.0005;
+            
+            // Quyosh shari animatsiyasi (Surface shift)
             sunMesh.rotation.y += 0.001;
-            sunGlow.rotation.y += 0.0008;
-            sunLight.intensity = 1.5 + Math.sin(animTime * 0.5) * 0.12;
+            sunGlow.rotation.y += 0.0006;
+            
+            // Quyosh nuri o'ynab turishi (Pulsating)
+            sunLight.intensity = 2.1 + Math.sin(animTime * 0.7) * 0.15;
             
             controls.update();
             effectComposer.render();
         }
+
+        // ========== UI EVENT TINGLOVCHILARI ==========
         
-        // ========== VOQEALAR ==========
-        const timeInput = document.getElementById('timeInput');
-        const jumpBtn = document.getElementById('jumpToTimeBtn');
-        const backBtn = document.getElementById('backBtn');
+        // Planet ro'yxatini to'ldirish
+        const listContainer = document.getElementById('planetList');
         
-        jumpBtn.addEventListener('click', () => {
-            let val = timeInput.value;
-            if (!val) val = "2026-05-15T12:00";
-            jumpToTime(val);
+        // Quyosh
+        const sunBtn = document.createElement('button');
+        sunBtn.className = 'planet-btn';
+        sunBtn.innerHTML = `<span class="planet-dot" style="color:#ffae33;"></span><span>Quyosh</span>`;
+        sunBtn.addEventListener('click', () => focusOnPlanet(sunMesh));
+        listContainer.appendChild(sunBtn);
+
+        // Sayyoralar
+        planetsData.forEach((pd, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'planet-btn';
+            btn.dataset.index = i;
+            
+            let colorStr = '#' + pd.color.toString(16).padStart(6, '0');
+            // Fix color if leading zero
+            if(pd.name === "Merkuriy") colorStr = "#8a8580";
+            if(pd.name === "Mars") colorStr = "#bd5e38";
+            
+            btn.innerHTML = `<span class="planet-dot" style="color:${colorStr};"></span><span>${pd.name}</span>`;
+            btn.addEventListener('click', () => focusOnPlanet(planetGroups[i].children[0]));
+            listContainer.appendChild(btn);
         });
-        
-        backBtn.addEventListener('click', backToSolar);
-        
-        const raycaster = new THREE.Raycaster();
-        const mouseVec = new THREE.Vector2();
-        
-        function handleClick(event) {
-            if (isAnimating) return;
-            
-            let clientX, clientY;
-            if (event.touches) {
-                clientX = event.touches[0].clientX;
-                clientY = event.touches[0].clientY;
-                event.preventDefault();
+
+        // Boshqaruv tugmalari ulash
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedVal = document.getElementById('speedVal');
+        const orbitsToggle = document.getElementById('orbitsToggle');
+        const bgToggle = document.getElementById('bgToggle');
+        const moonsToggle = document.getElementById('moonsToggle');
+        const jumpToTimeBtn = document.getElementById('jumpToTimeBtn');
+        const returnBtn = document.getElementById('returnBtn');
+        const closeCardBtn = document.getElementById('closeCardBtn');
+
+        playPauseBtn.addEventListener('click', () => {
+            isSimRunning = !isSimRunning;
+            if (isSimRunning) {
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
             } else {
-                clientX = event.clientX;
-                clientY = event.clientY;
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
             }
-            
-            mouseVec.x = (clientX / renderer.domElement.clientWidth) * 2 - 1;
-            mouseVec.y = -(clientY / renderer.domElement.clientHeight) * 2 + 1;
-            
-            raycaster.setFromCamera(mouseVec, camera);
-            const hits = raycaster.intersectObjects(planets);
-            
-            if (hits.length > 0 && currentView !== "planet") {
-                const hitPlanet = hits[0].object;
-                const idx = planets.findIndex(p => p === hitPlanet);
-                if (idx !== -1) {
-                    focusOnPlanet(planets[idx], planetsData[idx]);
+        });
+
+        speedSlider.addEventListener('input', (e) => {
+            simSpeed = parseFloat(e.target.value);
+            speedVal.innerText = simSpeed.toFixed(1) + 'x';
+        });
+
+        orbitsToggle.addEventListener('change', (e) => {
+            const show = e.target.checked;
+            orbits.forEach(line => line.visible = show);
+            allMoons.forEach(m => {
+                if(m.mesh.visible) m.orbitLine.visible = (show && moonsToggle.checked);
+            });
+        });
+
+        bgToggle.addEventListener('change', (e) => {
+            skyboxMesh.visible = e.target.checked;
+            stars.visible = e.target.checked;
+        });
+
+        moonsToggle.addEventListener('change', (e) => {
+            const show = e.target.checked;
+            allMoons.forEach(m => {
+                if (currentView === "planet" && m.parentPlanetGroup === focusedPlanetGroup) {
+                    m.mesh.visible = show;
+                    m.orbitLine.visible = (show && orbitsToggle.checked);
                 }
-            }
-        }
-        
-        window.addEventListener('click', handleClick);
-        window.addEventListener('touchstart', handleClick);
-        
-        const startDate = new Date("2026-05-15T12:00");
-        simulationDays = (startDate - refDate) / 86400000;
-        lastUpdate = performance.now();
-        updatePlanets(simulationDays);
-        
-        allMoons.forEach(m => m.mesh.visible = false);
-        
+            });
+        });
+
+        jumpToTimeBtn.addEventListener('click', () => {
+            const val = document.getElementById('timeInput').value;
+            if (val) jumpToTime(val);
+        });
+
+        returnBtn.addEventListener('click', backToSolar);
+        closeCardBtn.addEventListener('click', backToSolar);
+
+        // Ekran o'lchami o'zgarganda
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             effectComposer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        // Simulyatsiyani boshlash
+        const startDayOffset = (new Date("2026-05-15T12:00") - refDate) / 86400000;
+        simulationDays = startDayOffset;
+        lastUpdate = performance.now();
+        updatePlanets(simulationDays);
         
         renderLoop();
-        
-        console.log("✅ Tugma va ma'lumot paneli ajratildi | Tugma o'ng tomonda, ma'lumot chap tomonda | Hech qanday to'qnashuv yo'q");
     </script>
 </body>
 </html>
